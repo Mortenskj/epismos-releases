@@ -2183,6 +2183,7 @@ body[data-guide-provider="gemini"] #scene-header {border-color:var(--hair)}
 }
 #gemini-install .gemini-rhythm, #gemini-install .gemini-progress-copy {color:var(--muted);font-size:.75rem}
 #gemini-install .gemini-progress-copy {margin:0;font-variant-numeric:tabular-nums}
+#gemini-install .gemini-progress-copy {min-block-size:3lh}
 #gemini-install .gemini-progress {display:block;width:100%;height:.32rem;margin:.12rem 0;accent-color:var(--gemini-done)}
 #gemini-install .gemini-progress::-webkit-progress-bar {background:var(--raised);border-radius:1rem}
 #gemini-install .gemini-progress::-webkit-progress-value {background:var(--gemini-done);border-radius:1rem}
@@ -2263,6 +2264,21 @@ body[data-guide-provider="chatgpt"] #imos-tool .flow-title {
 .walkthrough-next {display:flex;flex-wrap:wrap;gap:.25rem .8rem;align-items:center;margin-top:.65rem}
 .walkthrough-status {flex-basis:100%;margin:0;color:var(--muted);font-size:.82rem}
 .walkthrough-confirm {color:var(--accent-strong);cursor:pointer}
+.guide-handoff {
+  position:relative;display:flex;flex-wrap:wrap;gap:.18rem .7rem;align-items:center;
+  border:1px solid var(--hair);border-radius:.85rem;background:var(--panel);padding:.5rem .65rem;
+}
+#imos-tool .guide-handoff[data-paste-next] {border-color:var(--accent-strong)}
+.guide-handoff .flow-secondary {margin:0}
+#imos-tool .guide-handoff :is(button,a) {min-height:44px}
+#imos-tool .guide-handoff [hidden],#imos-tool .gemini-next [hidden] {display:none}
+#imos-tool .practice-shortcut {
+  color:var(--accent-strong);background:none;border:0;border-radius:.3rem;padding:0 .15rem;
+  font:inherit;font-size:.78rem;font-weight:650;text-align:left;cursor:pointer;text-decoration:underline;
+  text-underline-offset:.16em;
+}
+#imos-tool .guide-handoff > * {min-width:0}
+#imos-tool .walkthrough-rail,#imos-tool #gemini-install .gemini-rail {flex-wrap:wrap}
 [data-walkthrough-copy][data-copied]::after {content:"✓" / "";margin-inline-start:.3em;color:currentColor}
 
 /* A single backdrop follows the active provider through its chooser and guides. */
@@ -3714,9 +3730,13 @@ async function copyText(text){
   try { await navigator.clipboard.writeText(text); copied=true; }
   catch(e){
     const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+    const previousFocus = document.activeElement;
     try { document.body.appendChild(ta); ta.select(); copied=document.execCommand('copy')===true; }
     catch(error){ copied=false; }
-    finally { ta.remove(); }
+    finally {
+      if (document.activeElement === ta) previousFocus?.focus({preventScroll:true});
+      ta.remove();
+    }
   }
   announce(copied?'Kopieret':'Kopiering blokeret — markér teksten og kopiér manuelt.');
   return copied;
@@ -4425,7 +4445,7 @@ init();
   const body = document.body;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const response = document.querySelector('.guide-response');
-  let pulse, reaction;
+  let pulse, handoffPulse, reaction;
   let image, width, height, frame = 0, last = 0, elapsed = 0;
 
   function react(kind, direction = 0) {
@@ -4504,6 +4524,7 @@ init();
 
   function clearResponse() {
     pulse?.cancel();
+    handoffPulse?.cancel();
     reaction = null;
   }
 
@@ -4516,7 +4537,17 @@ init();
   new MutationObserver(()=>{clearResponse();sync();}).observe(body,{
     attributes:true,attributeFilter:['data-guide-provider','data-ambient-paused'],
   });
-  document.addEventListener('instructioncopied',()=>react('copy'));
+  document.addEventListener('instructioncopied',event=>{
+    react('copy');
+    const panel = event.target.closest('.landing')?.querySelector('.guide-handoff[data-paste-next]');
+    if (!panel?.getClientRects().length || document.hidden || reduced.matches || body.hasAttribute('data-ambient-paused')) return;
+    handoffPulse?.cancel();
+    handoffPulse = panel.animate([
+      {boxShadow:'0 0 0 0 transparent'},
+      {boxShadow:'0 0 0 3px var(--glint), 0 0 22px var(--glint)',offset:.28},
+      {boxShadow:'0 0 0 6px transparent'},
+    ],{duration:760,easing:'cubic-bezier(.2,.72,.25,1)'});
+  });
   document.addEventListener('guidewheelchange',event=>react('wheel',event.detail));
   sync();
 })();
@@ -4684,13 +4715,13 @@ init();
     const segments = D.gemini_segments;
     const copied = new Set();
     const rail = node('ol','gemini-rail');
-    for (const [i,label] of ['Kopiér','Indsæt','Prøv'].entries()) {
+    for (const [i,label] of ['Kopiér','Indsæt og gem','Prøv'].entries()) {
       const item = node('li','');
       item.append(node('span','',String(i+1)),label);
       rail.append(item);
     }
 
-    const destination = node('div','gemini-destination');
+    const destination = node('div','gemini-destination guide-handoff');
     const path = node('strong','','Indstillinger → Personlig intelligens → Instruktioner til Gemini');
     const progress = node('div','gemini-progress-wrap');
     const status = node('p','gemini-progress-copy');
@@ -4699,20 +4730,21 @@ init();
     meter.max = segments.length;
     meter.setAttribute('aria-label','Kopierede moduler');
     const rhythm = node('span','gemini-rhythm','Kopiér ét modul. Vælg Tilføj (+), indsæt og tryk Send. Gentag.');
-    destination.append(path,rhythm);
     progress.append(meter,status);
 
-    const {practice,copyPrompt} = buildPractice('gemini','gemini-install');
+    const {practice,shortcut,openPractice} = buildPractice('gemini','gemini-install');
+    destination.append(path,rhythm);
 
     const confirm = button('meta-secondary-button gemini-confirm','Jeg har gemt modulerne →');
     const next = node('div','gemini-next');
     const openGemini = link('https://gemini.google.com/','Åbn Gemini ↗');
     openGemini.target = '_blank';
     openGemini.rel = 'noopener';
-    next.append(confirm,openGemini,verifier());
+    next.append(confirm,shortcut,openGemini,verifier());
     const list = node('ol','meta-steps gemini-modules-list');
     const cards = [];
     let saved = false;
+    let lastCopied;
     function update() {
       const count = copied.size;
       const remaining = cards.find(card=>!copied.has(card.index));
@@ -4722,8 +4754,14 @@ init();
         else step.removeAttribute('aria-current');
       }
       meter.value = count;
-      status.textContent = count+' af '+segments.length+' kopieret. '+(saved ? 'Prøv nu dine regler.' :
-        remaining ? 'Næste modul: '+remaining.index+'.' : 'Tjek, at alle fire er gemt i Gemini.');
+      status.textContent = saved ? 'Du har markeret modulerne som gemt.' :
+        (lastCopied ? 'Modul '+lastCopied.index+' · '+lastCopied.label+' kopieret. ' : '')+
+        count+' af '+segments.length+' kopieret. '+
+        (remaining ? 'Næste modul: '+remaining.index+' · '+remaining.label+'.' : 'Tjek, at alle fire er gemt i Gemini.');
+      destination.toggleAttribute('data-paste-next',Boolean(count && !saved));
+      confirm.hidden = count !== segments.length;
+      confirm.textContent = saved ? 'Gå til prøveprompten →' : 'Jeg har gemt modulerne →';
+      shortcut.hidden = saved;
       for (const {index,label,row,number,action} of cards) {
         const done = copied.has(index);
         row.dataset.copied = String(done);
@@ -4745,6 +4783,8 @@ init();
       const copy = async ()=>{
         if (await copyText(text)) {
           copied.add(index);
+          lastCopied = {index,label};
+          saved = false;
           update();
           content.dispatchEvent(new CustomEvent('instructioncopied',{bubbles:true,detail:'gemini-'+index}));
         }
@@ -4758,8 +4798,7 @@ init();
     confirm.addEventListener('click',()=>{
       saved = true;
       update();
-      practice.open = true;
-      copyPrompt.focus();
+      openPractice();
     });
     hero.querySelector('.handbook-effect').replaceChildren(
       node('strong','','Hvad ændrer det?'),' Gemini kan bruge reglerne i dine almindelige samtaler.');
@@ -4804,7 +4843,7 @@ init();
     practice.dataset.motionStyle = provider;
     const summary = node('summary','');
     const title = node('span','challenge-title');
-    summary.append(node('span','challenge-kicker','Prøv det i '+({chatgpt:'ChatGPT',claude:'Claude',gemini:'Gemini'}[provider])),title);
+    summary.append(node('span','challenge-kicker','Prøv én regel'),title);
     const intro = node('p','');
     const prompt = node('blockquote','challenge-prompt');
     const signal = node('p','challenge-signal');
@@ -4831,31 +4870,40 @@ init();
         copyPrompt.dataset.copied = '';
       }
     });
-    return {practice,copyPrompt,select};
+    function openPractice() {
+      practice.open = true;
+      copyPrompt.focus();
+    }
+    const shortcut = button('practice-shortcut','Allerede sat op? Prøv én regel →');
+    shortcut.addEventListener('click',openPractice);
+    return {practice,shortcut,openPractice,select};
   }
 
   function mountProviderWalkthrough(hero, section, id, info) {
     const provider = id.split('-')[0];
     const profile = () => section.querySelector('[data-gpt-profile-tab][aria-selected="true"]')?.dataset.gptProfileTab || 'epismos';
     const plan = () => 'chatgpt_'+section.querySelector('[data-plan].active')?.dataset.plan;
-    const {practice,copyPrompt,select} = buildPractice(provider,info.profiles ? profile() : id);
+    const {practice,shortcut,openPractice,select} = buildPractice(provider,info.profiles ? profile() : id);
     const rail = node('ol','walkthrough-rail');
-    for (const [i,label] of ['Kopiér','Indsæt','Prøv'].entries()) {
+    for (const [i,label] of ['Kopiér',info.steps ? 'Indsæt i filer' : 'Indsæt og gem','Prøv'].entries()) {
       const step = node('li','');
       step.append(node('span','',String(i+1)),label);
       rail.append(step);
     }
     hero.querySelector('.handbook-effect').after(rail);
+    const next = node('div','walkthrough-next guide-handoff');
+    const status = node('p','walkthrough-status');
+    status.setAttribute('role','status');
+    const confirm = button('meta-secondary-button walkthrough-confirm','Jeg har gemt teksten →');
+    const place = info.profiles ? node('p','meta-destination') : hero.querySelector('.meta-destination');
     if (info.profiles) {
-      const place = node('p','meta-destination');
       place.append(node('span','','Indsæt i'),node('strong','','GPT-byggeren → Instruktioner'));
       rail.after(place);
     }
-    const next = node('div','walkthrough-next');
-    const status = node('p','walkthrough-status');
-    status.setAttribute('role','status');
-    const confirm = button('meta-secondary-button walkthrough-confirm','Jeg har indsat teksten →');
-    next.append(status,confirm);
+    next.append(status);
+    next.append(confirm,shortcut);
+    const textCheck = hero.querySelector(':scope > a[href="#method-verifier"]');
+    if (textCheck) next.append(textCheck);
     hero.append(next);
     const copied = new Set(), confirmed = new Set();
     let previousContext;
@@ -4874,14 +4922,21 @@ init();
         const key = action.dataset.walkthroughCopy || context;
         action.toggleAttribute('data-copied',copied.has(key));
       }
-      const variant = done.at(-1) === info.variants?.[1] ? 'Kort version' : 'Standard';
-      const message = ready ? 'Klar til at prøve reglerne.' :
-        info.steps ? done.length+' af '+keys.length+' filer kopieret. Indsæt hver tekst i den viste fil.' :
-        done.length ? (info.variants ? variant+' kopieret.' : 'Instruktioner kopieret.')+' Indsæt i feltet ovenfor.' :
-        info.profiles ? 'Vælg den profil, der passer til det, du vil prøve.' :
-        'Kopiér teksten og indsæt den i feltet ovenfor.';
+      const lastCopy = done.at(-1);
+      const file = info.steps?.find(step=>step[2]===lastCopy);
+      const copyName = !lastCopy || file ? '' :
+        info.variants ? (lastCopy === info.variants[1] ? 'Kort version' : 'Standard') :
+        info.profiles ? 'Instruktioner til '+hero.querySelector('[data-gpt-profile-tab][aria-selected="true"] strong').textContent :
+        'Instruktioner til '+hero.querySelector('[data-plan].active').textContent;
+      const message = ready ? 'Du har markeret '+(info.steps ? 'filerne' : 'teksten')+' som gemt.' :
+        file ? 'Kopieret: '+file[0]+'. Indsæt i '+file[1]+' og gem.' :
+        lastCopy ? copyName+' kopieret. Indsæt i '+place.querySelector('strong').textContent+', og gem.' :
+        info.steps ? 'Kopiér hver tekst til den angivne fil.' : info.profiles ? 'Vælg en profil og kopiér dens instruktioner.' : 'Kopiér den tekst, du vil bruge.';
       if (status.textContent !== message) status.textContent = message;
-      confirm.textContent = ready ? 'Gå til prøveprompten →' : info.steps ? 'Jeg har gemt filerne →' : 'Jeg har indsat teksten →';
+      next.toggleAttribute('data-paste-next',Boolean(lastCopy && !ready));
+      confirm.hidden = !lastCopy;
+      shortcut.hidden = ready;
+      confirm.textContent = ready ? 'Gå til prøveprompten →' : info.steps ? 'Jeg har gemt filerne →' : 'Jeg har gemt teksten →';
     }
     hero.querySelector('.gpt-profile-tabs')?.addEventListener('click',update);
     hero.querySelector('.gpt-profile-tabs')?.addEventListener('keydown',update);
@@ -4896,8 +4951,7 @@ init();
     confirm.addEventListener('click',()=>{
       confirmed.add(previousContext);
       update();
-      practice.open = true;
-      copyPrompt.focus();
+      openPractice();
     });
     update();
     return practice;
