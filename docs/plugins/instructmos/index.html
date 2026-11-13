@@ -1,160 +1,150 @@
 <!doctype html>
-<html lang="da">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Vælg, klargør og kontrollér dine AI-instruktioner med InstructMOS. Se et eksempel og installer til Claude Code, Codex eller Gemini CLI.">
+<meta name="description" content="Choose, prepare and check your AI instructions with InstructMOS. Try an example and install it for Claude Code, Codex or Gemini CLI.">
 <title>InstructMOS · episMOS</title>
+<link rel="alternate" hreflang="en" href="./">
+<link rel="alternate" hreflang="da" href="da/">
 <link rel="icon" href="icon.png">
-<style>
-:root{color-scheme:dark;--bg:#151919;--panel:#1b2221;--raised:#232c29;--ink:#f4f2e8;--muted:#b6c3bc;--mint:#bde6d3;--line:#3c4c45;--peach:#ff986f;--warn:#ffb68f;font:16px/1.55 "DM Sans",system-ui,sans-serif}
-*{box-sizing:border-box}
-body{margin:0;color:var(--ink);background:radial-gradient(ellipse 62rem 33rem at 83% 4%,#20352d 0%,transparent 86%),var(--bg)}
-a{color:var(--mint);text-underline-offset:.23em}
-button,select{font:inherit}
-a,button,select,summary{touch-action:manipulation}
-:focus-visible{outline:3px solid var(--peach);outline-offset:4px}
-.skip{position:absolute;top:.5rem;left:.5rem;transform:translateY(-180%);background:var(--bg);padding:.6rem;z-index:1}
-.skip:focus{transform:none}
-header,main,footer{width:min(1160px,calc(100% - clamp(2rem,9vw,8rem)));margin-inline:auto}
-header{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:.6rem;border-bottom:1px solid var(--line)}
-header a,footer a{display:inline-flex;align-items:center;min-height:44px}
-.brand{color:var(--ink);text-decoration:none;font-weight:730;letter-spacing:-.03em;font-size:1.15rem}
-.brand img{width:31px;height:31px;margin-right:.55rem}
-header nav{display:flex;gap:clamp(.65rem,3vw,1.65rem);align-items:center;font-size:.84rem}
-header nav a{color:var(--muted)}
-main{padding-block:clamp(2.1rem,7vw,6rem) 3rem}
-.hero{display:grid;grid-template-columns:1.08fr .92fr;gap:clamp(1.75rem,5vw,5rem);align-items:start}
-.product{color:var(--peach);font-weight:730;margin:0 0 .8rem;letter-spacing:.03em}
-h1,h2,h3,p{margin-top:0}
-h1,h2{font-family:"Instrument Serif",Georgia,serif;font-weight:400;line-height:.98;letter-spacing:-.045em}
-h1{font-size:clamp(2.8rem,6.8vw,6rem);margin-bottom:1.3rem}
-h1 em{color:var(--mint);font-style:normal}
-h2{font-size:clamp(2.2rem,4.8vw,3.65rem);margin-bottom:.7rem}
-.lead{max-width:44ch;color:var(--muted);font-size:clamp(1rem,1.65vw,1.18rem);margin-bottom:1.4rem}
-.actions{display:flex;align-items:center;flex-wrap:wrap;gap:.5rem 1rem}
-.actions a{display:inline-flex;align-items:center;min-height:46px;font-weight:680}
-.primary{padding:.58rem 1.05rem;border-radius:8px;background:var(--mint);color:#16251e;text-decoration:none;box-shadow:0 4px 0 #10241a}
-.primary:hover{background:#d7fae8}
-.demo{background:linear-gradient(135deg,#27332e,var(--panel) 58%);border:1px solid var(--line);border-radius:18px;padding:clamp(1.1rem,3.25vw,2rem);box-shadow:0 24px 60px #0b100f80;min-width:0}
-.demo h2{font-size:clamp(1.85rem,4vw,2.9rem)}
-.demo p,.section-note{color:var(--muted)}
-.demo-fields{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
-label{display:grid;align-content:start;gap:.32rem;font-size:.88rem;font-weight:650;min-width:0}
-select{width:100%;min-height:46px;padding:.4rem .48rem;border:1px solid #6a8176;border-radius:7px;background:#171e1b;color:var(--ink)}
-.result{margin-top:1.15rem;padding:.85rem 1rem;border-radius:9px;border:1px solid #785442;background:#2d241f;min-height:7rem}
-.result strong{display:block;color:var(--warn);margin-bottom:.2rem}
-.result p{margin:0;color:var(--ink)}
-.result[data-match=true]{background:#1a2c24;border-color:#4c7961}
-.result[data-match=true] strong{color:var(--mint)}
-section+section{margin-top:clamp(3rem,7vw,6rem)}
-.jobs{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin:1.8rem 0 0}
-.jobs div{border-top:1px solid var(--line);padding-top:1rem}
-.jobs dt{font-weight:740;color:var(--mint);margin-bottom:.35rem}
-.jobs dd{color:var(--muted);margin:0}
-#installation{scroll-margin-top:1rem}
-.install{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin-top:1.25rem}
-.install article{display:flex;flex-direction:column;min-width:0;padding:1.1rem;background:var(--panel);border:1px solid var(--line);border-radius:12px}
-.install h3{margin:0 0 .5rem;font-size:1.05rem}
-.install p{color:var(--muted);font-size:.88rem}
-.install pre{border:1px solid var(--line);border-radius:6px;background:#121916;padding:.75rem;font:.82rem/1.5 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;user-select:all;margin:.1rem 0 .65rem}
-.install a{display:inline-flex;align-items:center;min-height:44px;margin-top:auto;align-self:start}
-footer{border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:.3rem 1.15rem;align-items:center;padding:1rem 0 1.6rem;font-size:.86rem}
-footer span{color:var(--muted)}
-@media(max-width:750px){.hero,.install{grid-template-columns:1fr}.jobs{gap:.75rem}.hero{gap:2rem}}
-@media(max-width:450px){header{min-height:62px}.brand img{width:24px;height:24px;margin-right:.33rem}header nav{font-size:.8rem}.jobs{grid-template-columns:1fr;gap:.65rem}.result{min-height:8.5rem}}
-</style>
+<link rel="stylesheet" href="page.css">
 </head>
-<body>
-<a class="skip" href="#indhold">Gå til indhold</a>
+<body
+  data-match="Text matches"
+  data-mismatch="Wrong profile"
+  data-match-message="The text matches the selected profile. Start a new chat in the project and try one rule to see how the AI uses it."
+  data-mismatch-message="{pasted} is valid, but you selected {expected}. Paste the version for your selected profile and check again."
+  data-step-label="Step {step} of {total}"
+  data-copy-success="Command copied."
+  data-copy-failure="Use your device’s Copy command to copy the selected text.">
+<a class="skip" href="#indhold">Skip to content</a>
 <header>
   <a class="brand" href="../../"><img src="icon.png" width="31" height="31" alt="">episMOS</a>
-  <nav aria-label="Sidenavigation"><a href="https://instruct.epismos.com/">Webguide</a><a href="#installation">Installation</a></nav>
+  <nav aria-label="Main navigation"><a href="https://instruct.epismos.com/">Web guide</a><a href="#installation">Installation</a><a class="language" lang="da" hreflang="da" href="da/">Dansk</a></nav>
 </header>
 <main id="indhold">
   <section class="hero" aria-labelledby="title">
     <div>
       <p class="product">InstructMOS · 1.5.2</p>
-      <h1 id="title">Genbrug dine <em>AI‑regler.</em></h1>
-      <p class="lead">Klargør instruktioner til din AI, og tjek, at du har kopieret den version, der passer til dit projekt.</p>
+      <h1 id="title">Reuse your <em>AI rules.</em></h1>
+      <p class="lead">Set up instructions for your AI and check that you copied the version you meant to use.</p>
       <div class="actions">
-        <a class="primary" href="#installation">Installér plugin</a>
-        <a href="https://instruct.epismos.com/">Åbn webguiden</a>
+        <a class="primary" href="#installation">Install the plugin</a>
+        <a href="https://instruct.epismos.com/">Open the web guide</a>
       </div>
     </div>
     <div class="demo">
-      <h2>Prøv et profilvalg</h2>
-      <p>Du vil bruge den korte tekst i ét ChatGPT-projekt. Hvad sker der, hvis du indsætter standardteksten?</p>
+      <h2>Try choosing a profile</h2>
+      <p>You want the short instructions for a ChatGPT project. What happens if you paste the standard version instead?</p>
       <div class="demo-fields">
-        <label for="expected">Valgt profil
-          <select id="expected"><option value="compact">Kort</option><option value="standard">Standard</option></select>
+        <label for="expected">Selected profile
+          <select id="expected"><option value="compact">Short</option><option value="standard">Standard</option></select>
         </label>
-        <label for="pasted">Indsat tekst
-          <select id="pasted"><option value="standard">Standard</option><option value="compact">Kort</option></select>
+        <label for="pasted">Pasted text
+          <select id="pasted"><option value="standard">Standard</option><option value="compact">Short</option></select>
         </label>
       </div>
       <div class="result" role="status" aria-live="polite" aria-atomic="true">
-        <strong>Forkert profil</strong>
-        <p>Standardteksten er intakt, men du valgte Kort. Indsæt den korte tekst, og tjek igen.</p>
+        <strong>Wrong profile</strong>
+        <p>The standard text is intact, but you selected Short. Paste the short version and check again.</p>
       </div>
-      <noscript><p>Eksemplet viser kontrollen med Kort valgt og Standard indsat.</p></noscript>
+      <noscript><p>This example shows what happens when you select Short and paste Standard.</p></noscript>
     </div>
   </section>
   <section aria-labelledby="use">
-    <h2 id="use">Når reglerne skal genbruges</h2>
-    <p class="section-note">Brug webguiden til en enkelt opsætning. Pluginet er til dig, der arbejder på tværs af projekter eller AI’er og vil bruge samme fremgangsmåde hver gang.</p>
+    <h2 id="use">When you want to reuse your rules</h2>
+    <p class="section-note">Use the web guide for a one-off setup. The plugin gives you the same workflow across projects and AI tools.</p>
     <dl class="jobs">
-      <div><dt>Klargør</dt><dd>Få tekst til fx personlige instruktioner, et enkelt projekt eller en kodebase.</dd></div>
-      <div><dt>Kontrollér</dt><dd>Sammenlign det, du kopierede, med den profil du ville bruge.</dd></div>
-      <div><dt>Afprøv</dt><dd>Brug en prøveprompt og se efter en konkret regel i svaret.</dd></div>
+      <div><dt>Prepare</dt><dd>Get instructions for your account, a single project or a codebase.</dd></div>
+      <div><dt>Check</dt><dd>Compare the text you copied with the profile you meant to use.</dd></div>
+      <div><dt>Try</dt><dd>Run a practice prompt and look for one specific rule in the reply.</dd></div>
     </dl>
   </section>
   <section id="installation" aria-labelledby="install-title">
-    <h2 id="install-title">Installér InstructMOS</h2>
-    <p class="section-note">Vælg din klient. Du gemmer selv de instruktioner, du vælger at bruge.</p>
+    <h2 id="install-title">Install InstructMOS</h2>
+    <p class="section-note">Choose the command-line tool you already use. Setting up ChatGPT, Claude or Gemini in a browser? <a href="https://instruct.epismos.com/">Open the web guide</a>.</p>
     <div class="install">
-      <article>
-        <h3>Claude Code</h3>
-        <pre><code>claude plugin marketplace add Mortenskj/epismos-releases
-claude plugin install instructmos@epismos-releases</code></pre>
-        <p>Start en ny session og kør <code>/instructmos:instructmos-setup</code>.</p>
-      </article>
-      <article>
-        <h3>Codex</h3>
-        <pre><code>codex plugin marketplace add Mortenskj/epismos-releases
-codex plugin add instructmos@epismos-releases</code></pre>
-        <p>Start en ny session og vælg InstructMOS setup i skill-vælgeren.</p>
-      </article>
-      <article>
-        <h3>Gemini CLI</h3>
-        <p>Pak ZIP’en ud og kør kommandoen fra mappen, der indeholder <code>instructmos</code>.</p>
-        <pre><code>gemini extensions install ./instructmos</code></pre>
-        <a href="https://github.com/Mortenskj/epismos-releases/releases/download/instructmos-v1.5.2/instructmos-1.5.2.zip">Hent ZIP til Gemini CLI</a>
-      </article>
+      <div class="install-picker" role="group" aria-label="Choose a command-line tool" hidden>
+        <button type="button" aria-pressed="true" aria-controls="install-claude">Claude Code</button>
+        <button type="button" aria-pressed="false" aria-controls="install-codex">Codex</button>
+        <button type="button" aria-pressed="false" aria-controls="install-gemini">Gemini CLI</button>
+      </div>
+      <div class="install-body">
+        <div class="install-progress" hidden><span class="install-track" aria-hidden="true"></span><span class="install-count">Step 1 of 3</span></div>
+        <article id="install-claude">
+          <h3>Claude Code</h3>
+          <ol>
+            <li>
+              <h4>Add the episMOS marketplace</h4>
+              <p>Open a terminal and run this command.</p>
+              <div class="install-command"><pre><code>claude plugin marketplace add Mortenskj/epismos-releases</code></pre><button type="button" aria-label="Copy command" hidden>Copy</button></div>
+            </li>
+            <li>
+              <h4>Install the plugin</h4>
+              <p>Once the marketplace is added, run this command in the same terminal.</p>
+              <div class="install-command"><pre><code>claude plugin install instructmos@epismos-releases</code></pre><button type="button" aria-label="Copy command" hidden>Copy</button></div>
+            </li>
+            <li>
+              <h4>Open InstructMOS in Claude Code</h4>
+              <p>Start a new Claude Code session, then run this command inside it.</p>
+              <div class="install-command"><pre><code>/instructmos:instructmos-setup</code></pre><button type="button" aria-label="Copy command" hidden>Copy</button></div>
+            </li>
+          </ol>
+        </article>
+        <article id="install-codex">
+          <h3>Codex</h3>
+          <ol>
+            <li>
+              <h4>Add the episMOS marketplace</h4>
+              <p>Open a terminal and run this command.</p>
+              <div class="install-command"><pre><code>codex plugin marketplace add Mortenskj/epismos-releases</code></pre><button type="button" aria-label="Copy command" hidden>Copy</button></div>
+            </li>
+            <li>
+              <h4>Install the plugin</h4>
+              <p>Once the marketplace is added, run this command in the same terminal.</p>
+              <div class="install-command"><pre><code>codex plugin add instructmos@epismos-releases</code></pre><button type="button" aria-label="Copy command" hidden>Copy</button></div>
+            </li>
+            <li>
+              <h4>Open InstructMOS in Codex</h4>
+              <p>Start a new Codex session. In the prompt, type <kbd>$</kbd>, select <code>instructmos-setup</code> from the list, then submit the prompt.</p>
+            </li>
+          </ol>
+        </article>
+        <article id="install-gemini">
+          <h3>Gemini CLI</h3>
+          <ol>
+            <li>
+              <h4>Download and extract the ZIP</h4>
+              <p>Extract the ZIP to get the <code>instructmos</code> folder.</p>
+              <a href="https://github.com/Mortenskj/epismos-releases/releases/download/instructmos-v1.5.2/instructmos-1.5.2.zip">Download InstructMOS 1.5.2</a>
+            </li>
+            <li>
+              <h4>Install the extension</h4>
+              <p>Open a terminal in the directory containing the extracted <code>instructmos</code> folder, then run this command.</p>
+              <div class="install-command"><pre><code>gemini extensions install ./instructmos</code></pre><button type="button" aria-label="Copy command" hidden>Copy</button></div>
+            </li>
+            <li>
+              <h4>Open InstructMOS in Gemini CLI</h4>
+              <p>Start a new Gemini CLI session and ask Gemini to use the InstructMOS setup skill.</p>
+            </li>
+          </ol>
+        </article>
+        <p class="install-copy-feedback" role="status" hidden></p>
+        <div class="install-footer" role="group" aria-label="Installation steps" hidden>
+          <button class="install-prev" type="button" aria-disabled="true">← Previous step</button>
+          <button class="install-next" type="button">Next step →</button>
+        </div>
+      </div>
     </div>
   </section>
 </main>
 <footer>
   <span>InstructMOS · 1.5.2</span>
-  <a href="https://github.com/Mortenskj/epismos-releases/releases/tag/instructmos-v1.5.2">ZIP og SHA-256</a>
-  <a href="https://github.com/Mortenskj/epismos-releases/tree/instructmos-v1.5.2/plugins/instructmos">Kilde og installationsguide</a>
-  <a href="https://github.com/Mortenskj/epismos-releases/releases">Versionshistorik</a>
+  <a href="https://github.com/Mortenskj/epismos-releases/releases/tag/instructmos-v1.5.2">ZIP and SHA-256</a>
+  <a href="https://github.com/Mortenskj/epismos-releases/tree/instructmos-v1.5.2/plugins/instructmos">Source and installation reference</a>
+  <a href="https://github.com/Mortenskj/epismos-releases/releases">Release history</a>
 </footer>
-<script>
-const expected = document.getElementById('expected');
-const pasted = document.getElementById('pasted');
-const result = document.querySelector('.result');
-function updateExample() {
-  const name = field => field.selectedOptions[0].text;
-  const matches = expected.value === pasted.value;
-  result.dataset.match = matches;
-  result.querySelector('strong').textContent = matches ? 'Teksten matcher' : 'Forkert profil';
-  result.querySelector('p').textContent = matches
-    ? 'Teksten matcher den valgte profil. Prøv en regel i en ny chat i projektet for at se, hvordan den bruges.'
-    : name(pasted) + ' er en gyldig tekst, men du valgte ' + name(expected) + '. Indsæt teksten til den valgte profil, og tjek igen.';
-}
-expected.addEventListener('change', updateExample);
-pasted.addEventListener('change', updateExample);
-</script>
+<script src="page.js" defer></script>
 </body>
 </html>
