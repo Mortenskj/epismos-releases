@@ -1,0 +1,70 @@
+name: InstructMOS web release
+
+on:
+  push:
+    tags:
+      - instructmos-web-r*
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing InstructMOS web tag to verify without publishing
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: instructmos-web-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+      PUBLISH: ${{ github.event_name == 'push' }}
+    steps:
+      - name: Check tagged HTML and publish its release
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^instructmos-web-r[1-9][0-9]*$ ]]
+          tag_commit=$(gh api "repos/$GH_REPO/commits/$RELEASE_TAG" --jq .sha)
+          main_commit=$(gh api "repos/$GH_REPO/commits/main" --jq .sha)
+          work=$(mktemp -d)
+          cd "$work"
+          gh api -H 'Accept: application/vnd.github.raw+json' \
+            "repos/$GH_REPO/contents/docs/instructmos/index.html?ref=$tag_commit" > instructmos.html
+          python3 - <<'PY'
+          from pathlib import Path
+          html = Path("instructmos.html").read_text(encoding="utf-8")
+          assert html.lstrip().lower().startswith("<!doctype html>")
+          assert 'id="app-data"' in html and "InstructMOS" in html
+          PY
+          sha256sum instructmos.html > instructmos.html.sha256
+          cat instructmos.html.sha256
+          if [[ "$PUBLISH" != true ]]; then
+            gh release download "$RELEASE_TAG" --pattern instructmos.html --output historical.html
+            cmp instructmos.html historical.html
+            exit 0
+          fi
+          if [[ "$tag_commit" != "$main_commit" ]]; then
+            echo "Tag the current main commit so Pages and the new release use the same HTML." >&2
+            exit 1
+          fi
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release download "$RELEASE_TAG" --pattern instructmos.html --output existing.html
+            cmp instructmos.html existing.html
+            exit 0
+          fi
+          latest=$(gh api "repos/$GH_REPO/releases/latest" --jq .tag_name)
+          [[ "$latest" =~ ^instructmos-web-r[1-9][0-9]*$ ]]
+          (( ${RELEASE_TAG##*r} > ${latest##*r} ))
+          gh release create "$RELEASE_TAG" instructmos.html instructmos.html.sha256 \
+            --verify-tag --latest --title "InstructMOS Pilot ${RELEASE_TAG##*-}" --generate-notes
