@@ -1,0 +1,4 @@
+interface:
+  display_name: instructMOS
+  short_description: Ordret tekst. Synlig kontrol.
+  default_prompt: Auditér mine nuværende instruktioner mod Policy Kernel v1.2 og vis CURRENT / TARGET / GAP med den mindste rettelse.

@@ -13,3 +13,8 @@ Arkivet starter med de offentlige InstructMOS-webudgaver. Hver udgave har en fas
 3. Kontrollér at GitHub Pages, det faste downloadlink og den taggede release matcher. Simply har fortsat sin egen publicering.
 
 Kør workflowet manuelt med et eksisterende tag for at verificere en tidligere udgivelse uden at ændre den.
+
+## Plugins
+
+[InstructMOS 1.5.2](plugins/instructmos/) supports Claude Code, Codex and Gemini CLI.
+[Get the install ZIP and SHA-256](https://github.com/Mortenskj/epismos-releases/releases/tag/instructmos-v1.5.2).

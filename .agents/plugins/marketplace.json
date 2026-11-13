@@ -1,0 +1,17 @@
+{
+  "name": "epismos-releases",
+  "plugins": [
+    {
+      "name": "instructmos",
+      "source": {
+        "source": "local",
+        "path": "./plugins/instructmos"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

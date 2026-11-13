@@ -1,0 +1,44 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "instructmos",
+  "version": "1.5.2",
+  "description": "Prepare canonical instructions for ChatGPT, Claude and Gemini, check copied text, and score supplied answers with bounded pattern probes. Guidance, not enforcement; no automatic account installation.",
+  "author": {
+    "name": "Morten Oxholm Skjærbæk",
+    "url": "https://epismos.com"
+  },
+  "homepage": "https://epismos.com",
+  "keywords": [
+    "instructions",
+    "chatgpt",
+    "claude",
+    "gemini",
+    "governance",
+    "verification"
+  ],
+  "extensions": {
+    "com.openai": {
+      "onboardingSkill": "./skills/instructmos-setup/SKILL.md",
+      "interface": {
+        "displayName": "instructMOS",
+        "shortDescription": "Ordret tekst. Synlig kontrol.",
+        "longDescription": "Klargør Policy Kernel v1.2 ordret til din valgte AI-flade. Kontrollér kopien mod den tilsigtede profil, og undersøg indsamlede svar med danske mønsterprøver. En intakt tekst er ikke en indlæsningskvittering, og en mønstermatch er ikke en kvalitetsdom. Pluginet ændrer ikke automatisk dine konti og skaber ingen sikkerheds- eller administratorhåndhævelse.",
+        "developerName": "Morten Oxholm Skjærbæk · episMOS",
+        "category": "Productivity",
+        "capabilities": [
+          "Interactive"
+        ],
+        "defaultPrompt": [
+          "Sæt mine ChatGPT custom instructions op med instructMOS og giv mig teksten, der passer til min plan.",
+          "Auditér mine Claude- eller Gemini-instruktioner mod Policy Kernel v1.2 og vis CURRENT / TARGET / GAP.",
+          "Flyt mit ChatGPT Project-setup til Claude og Gemini uden at ændre ordlyden i kernen."
+        ],
+        "brandColor": "#E87543",
+        "brandColorDark": "#E87543",
+        "composerIcon": "./assets/instructmos-icon.png",
+        "logo": "./assets/instructmos-logo.png"
+      }
+    }
+  },
+  "license": "MIT"
+}

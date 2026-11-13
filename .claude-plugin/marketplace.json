@@ -1,0 +1,16 @@
+{
+  "name": "epismos-releases",
+  "owner": {
+    "name": "episMOS"
+  },
+  "metadata": {
+    "description": "Official episMOS plugin releases."
+  },
+  "plugins": [
+    {
+      "name": "instructmos",
+      "source": "./plugins/instructmos",
+      "description": "Prepare instruction profiles, verify copied text, and review supplied answers."
+    }
+  ]
+}
