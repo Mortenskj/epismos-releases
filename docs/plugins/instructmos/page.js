@@ -1,4 +1,5 @@
 const copy = document.body.dataset;
+const settings = document.querySelector('.site-settings');
 const languageLink = document.querySelector('.language');
 const languageURL = new URL(languageLink.href);
 function preserveSection() {
@@ -7,6 +8,14 @@ function preserveSection() {
 }
 addEventListener('hashchange', preserveSection);
 preserveSection();
+settings.addEventListener('keydown', event => {
+  if (event.key !== 'Escape' || !settings.open) return;
+  settings.open = false;
+  settings.querySelector('summary').focus();
+});
+document.addEventListener('click', event => {
+  if (!settings.contains(event.target)) settings.open = false;
+});
 
 const expected = document.getElementById('expected');
 const pasted = document.getElementById('pasted');

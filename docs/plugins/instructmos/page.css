@@ -14,7 +14,17 @@ header a,footer a{display:inline-flex;align-items:center;min-height:44px}
 .brand img{width:31px;height:31px;margin-right:.55rem}
 header nav{display:flex;gap:clamp(.65rem,3vw,1.65rem);align-items:center;font-size:.84rem}
 header nav a{color:var(--muted)}
-header nav .language{color:var(--mint)}
+.site-settings{position:relative;z-index:2}
+.site-settings summary{list-style:none;display:flex;align-items:center;justify-content:center;gap:.5rem;min-width:44px;min-height:44px;padding-inline:.7rem;border:1px solid var(--line);border-radius:10px;background:var(--panel);cursor:pointer;color:var(--ink);font-weight:680}
+.site-settings summary::-webkit-details-marker{display:none}
+.site-settings summary:hover,.site-settings[open] summary{border-color:var(--mint)}
+.site-settings summary [aria-hidden]{font-size:1.15rem;line-height:1}
+.settings-panel{position:absolute;top:calc(100% + .5rem);inset-inline-end:0;min-width:10rem;padding:.45rem;border:1px solid var(--line);border-radius:12px;background:var(--panel);box-shadow:0 12px 32px #0b100f88}
+.settings-panel p{margin:.15rem .55rem;color:var(--muted)}
+.settings-panel :is(.language,.settings-current){display:flex;justify-content:space-between;align-items:center;min-height:44px;padding-inline:.55rem;border-radius:6px}
+.settings-panel .language{color:var(--ink);text-decoration:none}
+.settings-panel .language:hover,.settings-current{color:var(--mint);background:var(--raised)}
+header nav small{margin-inline-start:.25em;color:var(--muted)}
 main{padding-block:clamp(2.1rem,7vw,6rem) 3rem}
 .hero{display:grid;grid-template-columns:1.08fr .92fr;gap:clamp(1.75rem,5vw,5rem);align-items:start}
 .product{color:var(--peach);font-weight:730;margin:0 0 .8rem;letter-spacing:.03em}
@@ -79,4 +89,4 @@ section+section{margin-top:clamp(3rem,7vw,6rem)}
 footer{border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:.3rem 1.15rem;align-items:center;padding:1rem 0 1.6rem;font-size:.86rem}
 footer span{color:var(--muted)}
 @media(max-width:750px){.hero,.install[data-ready]{grid-template-columns:1fr}.jobs{gap:.75rem}.hero{gap:2rem}.install-picker{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-right:0;border-bottom:1px solid var(--line)}.install-picker button{text-align:center;padding-inline:.25rem}}
-@media(max-width:450px){header{min-height:62px}.brand img{width:24px;height:24px;margin-right:.33rem}header nav{font-size:.8rem}.jobs{grid-template-columns:1fr;gap:.65rem}.result{min-height:8.5rem}.install-command{flex-direction:column;align-items:stretch}.install-command button{align-self:end}}
+@media(max-width:450px){header{min-height:62px}.brand img{width:24px;height:24px;margin-right:.33rem}header nav{font-size:.8rem}.settings-label,header nav small{display:none}.jobs{grid-template-columns:1fr;gap:.65rem}.result{min-height:8.5rem}.install-command{flex-direction:column;align-items:stretch}.install-command button{align-self:end}}
