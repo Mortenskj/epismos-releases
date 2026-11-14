@@ -8,6 +8,7 @@
 <link rel="alternate" hreflang="en" href="./">
 <link rel="alternate" hreflang="da" href="da/">
 <link rel="icon" href="icon.png">
+<script src="appearance.js"></script>
 <link rel="stylesheet" href="page.css">
 </head>
 <body
@@ -19,66 +20,60 @@
   data-copy-success="Command copied."
   data-copy-failure="Use your device’s Copy command to copy the selected text.">
 <a class="skip" href="#indhold">Skip to content</a>
-<header>
-  <a class="brand" href="../../"><img src="icon.png" width="31" height="31" alt="">episMOS</a>
+<div class="topbar"><header>
+  <a class="brand" href="#"><span>Instruct</span>MOS</a>
   <nav aria-label="Main navigation">
-    <a href="https://instruct.epismos.com/">Web guide <small lang="da">(dansk)</small></a><a href="#installation">Installation</a>
+    <a href="https://instruct.epismos.com/" hreflang="da" title="Web guide in Danish">Web guide</a><a href="#installation">Installation</a>
     <details class="site-settings">
       <summary aria-label="Settings"><span aria-hidden="true">⚙</span><span class="settings-label">Settings</span></summary>
-      <div class="settings-panel" role="group" aria-label="Language">
-        <p aria-hidden="true">Language</p>
+      <div class="settings-panel">
+        <p>Language</p>
         <span class="settings-current" aria-current="page">English <span aria-hidden="true">✓</span></span>
-        <a class="language" lang="da" hreflang="da" href="da/">Dansk</a>
+        <a class="language" lang="da" hreflang="da" href="da/index.html">Dansk</a>
+        <div class="settings-enhancements" hidden>
+          <label for="site-theme">Appearance</label>
+          <select id="site-theme"><option value="dark">Dark</option><option value="light">Light</option></select>
+          <label class="motion-setting"><input type="checkbox" id="site-motion"> Pause background motion</label>
+        </div>
       </div>
     </details>
   </nav>
-</header>
+</header></div>
 <main id="indhold">
   <section class="hero" aria-labelledby="title">
-    <div>
-      <p class="product">InstructMOS · 1.5.2</p>
-      <h1 id="title">Reuse your <em>AI rules.</em></h1>
-      <p class="lead">Set up instructions for your AI and check that you copied the version you meant to use.</p>
-      <div class="actions">
-        <a class="primary" href="#installation">Install the plugin</a>
-        <a href="https://instruct.epismos.com/">Open the web guide (Danish)</a>
-      </div>
+    <div class="ambient" aria-hidden="true"></div>
+    <p class="eyebrow">episMOS / InstructMOS plugin</p>
+    <h1 id="title">InstructMOS <em>for your terminal.</em></h1>
+    <p class="lead">Choose the command-line tool you use. InstructMOS helps you prepare, check and try instructions for your AI.</p>
+    <nav class="portals" aria-label="Choose your installation">
+      <a class="portal" href="#install-claude">
+        <span class="portal-mark" aria-hidden="true"><img class="logo-dark" src="claude-dark.webp" alt="" width="88" height="88"><img class="logo-light" src="claude-light.webp" alt="" width="88" height="88"></span>
+        <span class="portal-name">Claude Code</span><span class="portal-arrow" aria-hidden="true">↓</span>
+      </a>
+      <a class="portal" href="#install-codex">
+        <span class="portal-mark" aria-hidden="true"><span class="portal-code">&lt;/&gt;</span></span>
+        <span class="portal-name">Codex</span><span class="portal-arrow" aria-hidden="true">↓</span>
+      </a>
+      <a class="portal" href="#install-gemini">
+        <span class="portal-mark" aria-hidden="true"><img class="logo-dark" src="gemini-dark.webp" alt="" width="88" height="88"><img class="logo-light" src="gemini-light.webp" alt="" width="88" height="88"></span>
+        <span class="portal-name">Gemini CLI</span><span class="portal-arrow" aria-hidden="true">↓</span>
+      </a>
+    </nav>
+    <div class="hero-links">
+      <span>Use AI in your browser? <a href="https://instruct.epismos.com/" hreflang="da">Open the Danish web guide</a></span>
+      <a href="#example">See what the plugin does <span aria-hidden="true">↓</span></a>
     </div>
-    <div class="demo">
-      <h2>Try choosing a profile</h2>
-      <p>You want the short instructions for a ChatGPT project. What happens if you paste the standard version instead?</p>
-      <div class="demo-fields">
-        <label for="expected">Selected profile
-          <select id="expected"><option value="compact">Short</option><option value="standard">Standard</option></select>
-        </label>
-        <label for="pasted">Pasted text
-          <select id="pasted"><option value="standard">Standard</option><option value="compact">Short</option></select>
-        </label>
-      </div>
-      <div class="result" role="status" aria-live="polite" aria-atomic="true">
-        <strong>Wrong profile</strong>
-        <p>The standard text is intact, but you selected Short. Paste the short version and check again.</p>
-      </div>
-      <noscript><p>This example shows what happens when you select Short and paste Standard.</p></noscript>
-    </div>
-  </section>
-  <section aria-labelledby="use">
-    <h2 id="use">When you want to reuse your rules</h2>
-    <p class="section-note">Use the web guide for a one-off setup. The plugin gives you the same workflow across projects and AI tools.</p>
-    <dl class="jobs">
-      <div><dt>Prepare</dt><dd>Get instructions for your account, a single project or a codebase.</dd></div>
-      <div><dt>Check</dt><dd>Compare the text you copied with the profile you meant to use.</dd></div>
-      <div><dt>Try</dt><dd>Run a practice prompt and look for one specific rule in the reply.</dd></div>
-    </dl>
   </section>
   <section id="installation" aria-labelledby="install-title">
-    <h2 id="install-title">Install InstructMOS</h2>
-    <p class="section-note">Choose the command-line tool you already use. Setting up ChatGPT, Claude or Gemini in a browser? <a href="https://instruct.epismos.com/">Open the web guide</a>.</p>
+    <div class="installation-intro">
+      <h2 id="install-title" tabindex="-1">Install InstructMOS</h2>
+      <p class="section-note">Choose your tool and follow the three steps.</p>
+    </div>
     <div class="install">
       <div class="install-picker" role="group" aria-label="Choose a command-line tool" hidden>
-        <button type="button" aria-pressed="true" aria-controls="install-claude">Claude Code</button>
-        <button type="button" aria-pressed="false" aria-controls="install-codex">Codex</button>
-        <button type="button" aria-pressed="false" aria-controls="install-gemini">Gemini CLI</button>
+        <button type="button" aria-pressed="true" aria-controls="install-claude" aria-label="Claude Code"><span class="client-monogram" aria-hidden="true">Cl</span><span>Claude Code<small>Marketplace</small></span></button>
+        <button type="button" aria-pressed="false" aria-controls="install-codex" aria-label="Codex"><span class="client-monogram" aria-hidden="true">Cx</span><span>Codex<small>Marketplace</small></span></button>
+        <button type="button" aria-pressed="false" aria-controls="install-gemini" aria-label="Gemini CLI"><span class="client-monogram" aria-hidden="true">Ge</span><span>Gemini CLI<small>ZIP extension</small></span></button>
       </div>
       <div class="install-body">
         <div class="install-progress" hidden><span class="install-track" aria-hidden="true"></span><span class="install-count">Step 1 of 3</span></div>
@@ -148,9 +143,37 @@
       </div>
     </div>
   </section>
+  <section id="example" class="workflow" aria-labelledby="use">
+    <div>
+      <h2 id="use">From a rule to a reply</h2>
+      <p class="section-note">Choose where your rules should apply. The plugin gives you the same way to prepare, check and try instructions across projects and AI tools.</p>
+      <ol class="workflow-steps">
+        <li><span aria-hidden="true">01</span><div><h3>Prepare</h3><p>Choose instructions for your account, a project or a codebase.</p></div></li>
+        <li><span aria-hidden="true">02</span><div><h3>Check</h3><p>Compare the text you pasted with the version you meant to use.</p></div></li>
+        <li><span aria-hidden="true">03</span><div><h3>Try</h3><p>Run a practice prompt and look for one specific rule in the reply.</p></div></li>
+      </ol>
+    </div>
+    <div class="demo">
+      <h3>Interactive example</h3>
+      <p>You want the short instructions for a ChatGPT project. What happens if you paste the standard version instead?</p>
+      <div class="demo-fields">
+        <label for="expected">Selected profile
+          <select id="expected"><option value="compact">Short</option><option value="standard">Standard</option></select>
+        </label>
+        <label for="pasted">Pasted text
+          <select id="pasted"><option value="standard">Standard</option><option value="compact">Short</option></select>
+        </label>
+      </div>
+      <div class="result" role="status" aria-live="polite" aria-atomic="true" data-match="false">
+        <strong>Wrong profile</strong>
+        <p>The standard text is intact, but you selected Short. Paste the short version and check again.</p>
+      </div>
+      <noscript><p>This example shows what happens when you select Short and paste Standard.</p></noscript>
+    </div>
+  </section>
 </main>
 <footer>
-  <span>InstructMOS · 1.5.2</span>
+  <strong class="footer-brand">InstructMOS · 1.5.2</strong>
   <a href="https://github.com/Mortenskj/epismos-releases/releases/tag/instructmos-v1.5.2">ZIP and SHA-256</a>
   <a href="https://github.com/Mortenskj/epismos-releases/tree/instructmos-v1.5.2/plugins/instructmos">Source and installation reference</a>
   <a href="https://github.com/Mortenskj/epismos-releases/releases">Release history</a>

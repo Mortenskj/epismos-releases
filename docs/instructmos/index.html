@@ -4427,7 +4427,11 @@ init();
   let saved;
   try { saved = localStorage.getItem(key); } catch {}
 
+  const pluginLink = document.querySelector('.scene-plugin-link');
+  const pluginURL = new URL(pluginLink.href);
   function set(theme) {
+    pluginURL.searchParams.set('theme', theme);
+    pluginLink.href = pluginURL.href;
     root.dataset.theme = theme;
     toggle.setAttribute('aria-label', theme === 'light' ? 'Mørkt tema' : 'Lyst tema');
     color.content = theme === 'light' ? '#ffffff' : '#151210';

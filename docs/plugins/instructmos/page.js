@@ -2,8 +2,10 @@ const copy = document.body.dataset;
 const settings = document.querySelector('.site-settings');
 const languageLink = document.querySelector('.language');
 const languageURL = new URL(languageLink.href);
+if (languageURL.protocol !== 'file:') languageURL.pathname = languageURL.pathname.replace(/index\.html$/, '');
 function preserveSection() {
   languageURL.hash = location.hash;
+  languageURL.searchParams.set('theme', document.documentElement.dataset.theme || 'dark');
   languageLink.href = languageURL.href;
 }
 addEventListener('hashchange', preserveSection);
@@ -15,6 +17,35 @@ settings.addEventListener('keydown', event => {
 });
 document.addEventListener('click', event => {
   if (!settings.contains(event.target)) settings.open = false;
+});
+
+const theme = document.getElementById('site-theme');
+const motion = document.getElementById('site-motion');
+const root = document.documentElement;
+theme.value = root.dataset.theme || 'dark';
+motion.checked = root.dataset.motion === 'paused';
+settings.querySelector('.settings-enhancements').hidden = false;
+theme.addEventListener('change', () => {
+  root.dataset.theme = theme.value;
+  const url = new URL(location.href);
+  if (url.searchParams.has('theme')) {
+    url.searchParams.set('theme', theme.value);
+    history.replaceState(history.state, '', url);
+  }
+  preserveSection();
+  try {
+    localStorage.setItem('instructmos.plugin.theme', theme.value);
+  } catch {
+    // The theme still applies to this page.
+  }
+});
+motion.addEventListener('change', () => {
+  root.dataset.motion = motion.checked ? 'paused' : 'active';
+  try {
+    localStorage.setItem('instructmos.plugin.motion', root.dataset.motion);
+  } catch {
+    // The motion setting still applies to this page.
+  }
 });
 
 const expected = document.getElementById('expected');
@@ -70,6 +101,10 @@ clients.forEach((button, index) => button.addEventListener('click', () => {
   if (client === index) return;
   client = index;
   step = 0;
+  if (guides.some(guide => '#' + guide.id === location.hash)) {
+    history.replaceState(history.state, '', '#' + guides[client].id);
+    preserveSection();
+  }
   showInstallStep();
 }));
 
@@ -105,3 +140,16 @@ for (const command of install.querySelectorAll('.install-command')) {
 showInstallStep();
 install.dataset.ready = '';
 for (const control of [picker, progress, feedback, footer]) control.hidden = false;
+
+function openLinkedGuide(moveFocus) {
+  const index = guides.findIndex(guide => '#' + guide.id === location.hash);
+  if (index === -1) return;
+  client = index;
+  step = 0;
+  showInstallStep();
+  const title = document.getElementById('install-title');
+  if (moveFocus) title.focus({preventScroll: true});
+  title.closest('section').scrollIntoView();
+}
+addEventListener('hashchange', () => openLinkedGuide(true));
+openLinkedGuide(false);
