@@ -6,9 +6,9 @@ import {
 
 const TAU = Math.PI * 2;
 const skies = {
-  chatgpt: ['#78ebd8','#5077ca','#e4adbc'],
-  claude: ['#ffbc99','#7563af','#f4d3d1'],
-  gemini: ['#a69cff','#3c91cf','#ffd3bc'],
+  chatgpt: {colors:['#78ebd8','#5077ca','#d0dec4'],angle:.26,flatten:1.36,curl:3.8,arms:2,seed:11},
+  claude: {colors:['#ffbc99','#8d65a8','#f5d9bf'],angle:-.49,flatten:1.06,curl:3.1,arms:2,seed:27},
+  gemini: {colors:['#ad96ff','#4299e5','#f2afe1'],angle:.64,flatten:1.24,curl:4.2,arms:3,seed:47},
 };
 const mix = (a,b,t) => a+(b-a)*t;
 const clamp = n => Math.max(0,Math.min(1,n));
@@ -44,16 +44,17 @@ function makeTexture(width,height,sample) {
   return texture;
 }
 
-// The luminous arms and the obscuring dust lanes are one authored sky texture.
-function galaxyTexture(palette,light) {
-  const [cyan,blue,rose] = palette.map(rgb);
+// Keep each cloud near the orbit and let its feathered edges dissolve into the wider star field.
+function galaxyTexture(sky,light) {
+  const [cyan,blue,rose] = sky.colors.map(rgb);
+  const cos=Math.cos(sky.angle),sin=Math.sin(sky.angle);
   return makeTexture(480,272,(u,v,pixel,index)=>{
     const x = (u-.5)*2.12, y = (v-.5)*1.55;
-    const ax = .89*x-.46*y, ay = (.46*x+.89*y)*1.24;
+    const ax = cos*x-sin*y, ay = (sin*x+cos*y)*sky.flatten;
     const r = Math.hypot(ax,ay);
-    const grain = clouds(ax*6.3,ay*6.3,11);
-    const arms = .5+.5*Math.cos(2*Math.atan2(ay,ax)-4.15*Math.log(r+.13)+grain*2.7);
-    const lane = .5+.5*Math.cos(arms*5.1+clouds(ax*18,ay*18,31)*4.8);
+    const grain = clouds(ax*6.3,ay*6.3,sky.seed);
+    const arms = .5+.5*Math.cos(sky.arms*Math.atan2(ay,ax)-sky.curl*Math.log(r+.13)+grain*2.7);
+    const lane = .5+.5*Math.cos(arms*5.1+clouds(ax*18,ay*18,sky.seed+20)*4.8);
     const envelope = Math.exp(-r*r*2.25);
     const dust = Math.pow(arms,2.2)*envelope*(.25+.75*grain)*(.53+.47*lane)*clamp(r*4.9);
     const veil = Math.pow(grain,2.3)*envelope*.82;
@@ -63,10 +64,11 @@ function galaxyTexture(palette,light) {
     for(let i=0;i<3;i++) {
       const illumination = mix(cyan[i],rose[i],tint);
       pixel[index+i] = light ?
-        247+i*3 - vignette*((255-illumination)*dust*.57+(255-blue[i])*(veil*.24+spill*.17)) :
-        5+i*4 + vignette*(illumination*dust*.79+blue[i]*veil*.31+blue[i]*spill*.16);
+        247+i*3 - vignette*((255-illumination)*dust*.77+(255-blue[i])*(veil*.31+spill*.22)) :
+        5+i*4 + vignette*(illumination*dust*.86+blue[i]*veil*.36+blue[i]*spill*.21);
     }
-    pixel[index+3] = 255;
+    const feather=clamp(Math.min(u,1-u,v,1-v)*5.2);
+    pixel[index+3]=255*feather*feather*(3-2*feather)*Math.exp(-r*r*.28);
   });
 }
 
@@ -116,14 +118,15 @@ function starLayer(count,seed,strength) {
 }
 
 function makeArt(canvas) {
-  const renderer = new WebGLRenderer({canvas,antialias:true,powerPreference:'low-power'});
+  const renderer = new WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:'low-power'});
   const world = new Scene();
   const camera = new OrthographicCamera(-1,1,1,-1,1,1800);
   camera.position.z=720;
-  const sky = new Mesh(new PlaneGeometry(1,1),new MeshBasicMaterial());
+  const sky = new Mesh(new PlaneGeometry(1,1),new MeshBasicMaterial({transparent:true,depthWrite:false}));
+  sky.renderOrder=-1;
   sky.position.z=-430;
-  const far = starLayer(710,19,.62);
-  const near = starLayer(180,47,.91);
+  const far = starLayer(1020,19,.63);
+  const near = starLayer(218,47,.89);
   far.position.z=-350;
   near.position.z=-244;
   world.add(sky,far,near);
@@ -137,7 +140,8 @@ function mountGalaxy(backdrop,canvas) {
   let frame={position:-Number(firstCard?.style.getPropertyValue('--wheel-offset') || 0),
     count:track.querySelectorAll('.imos-wheel-card').length || 4};
   let art,contextLost=false,pending=0,lastPaint=-Infinity;
-  let dimensionsDirty=true,paletteDirty=true;
+  let dimensionsDirty=true,paletteDirty=true,orbitDirty=true;
+  let skyX=0,skyY=0;
   const skiesByVendor=new Map();
 
   function canPaint() {
@@ -167,21 +171,29 @@ function mountGalaxy(backdrop,canvas) {
       art.renderer.setSize(width,height,false);
       Object.assign(art.camera,{left:-width/2,right:width/2,top:height/2,bottom:-height/2});
       art.camera.updateProjectionMatrix();
-      art.sky.scale.set(width*1.1,height*1.1,1);
       art.far.scale.set(width*.60,height*.62,39);
       art.near.scale.set(width*.63,height*.65,38);
       art.far.material.uniforms.density.value=pixelRatio*.79;
       art.near.material.uniforms.density.value=pixelRatio*1.01;
       dimensionsDirty=false;
+      orbitDirty=true;
+    }
+    if(orbitDirty) {
+      const bounds=track.getBoundingClientRect();
+      if(!bounds.width || !bounds.height) return;
+      skyX=bounds.left+(bounds.width-backdrop.clientWidth)/2;
+      skyY=(backdrop.clientHeight-bounds.height)/2-bounds.top;
+      art.sky.scale.set(bounds.width*1.47,bounds.height*1.72,1);
+      orbitDirty=false;
     }
     if(paletteDirty) {
       const name=document.body.dataset.guideProvider;
-      const palette=skies[name] || skies.chatgpt;
+      const solarSystem=skies[name] || skies.chatgpt;
       const key=name+'/'+light;
-      if(!skiesByVendor.has(key)) skiesByVendor.set(key,galaxyTexture(palette,light));
+      if(!skiesByVendor.has(key)) skiesByVendor.set(key,galaxyTexture(solarSystem,light));
       art.sky.material.map=skiesByVendor.get(key);
       art.sky.material.needsUpdate=true;
-      for(const [stars,tint] of [[art.far,palette[1]],[art.near,palette[2]]]) {
+      for(const [stars,tint] of [[art.far,solarSystem.colors[1]],[art.near,solarSystem.colors[2]]]) {
         stars.material.uniforms.tint.value.set(tint);
         stars.material.uniforms.coreColor.value.set(light?'#71608d':'#eff6ff');
         stars.material.uniforms.strength.value=stars.userData.strength*(light?.5:1);
@@ -193,7 +205,8 @@ function mountGalaxy(backdrop,canvas) {
     art.far.position.y=3*Math.cos(phase);
     art.near.position.x=18*Math.sin(phase+.35);
     art.near.position.y=8*Math.cos(phase);
-    art.sky.position.x=-5*Math.sin(phase);
+    art.sky.position.x=skyX-5*Math.sin(phase);
+    art.sky.position.y=skyY;
     art.renderer.render(art.world,art.camera);
     if(!backdrop.dataset.orbitRenderer) backdrop.dataset.orbitRenderer='three';
     const theme=light?'light':'dark';
@@ -213,7 +226,10 @@ function mountGalaxy(backdrop,canvas) {
     schedule();
   });
   new ResizeObserver(()=>{dimensionsDirty=true;schedule();}).observe(backdrop);
-  new MutationObserver(()=>{paletteDirty=true;schedule();}).observe(document.body,{
+  function syncOrbitPosition() {orbitDirty=true;schedule();}
+  new ResizeObserver(syncOrbitPosition).observe(track);
+  window.addEventListener('scroll',syncOrbitPosition,{passive:true});
+  new MutationObserver(()=>{paletteDirty=orbitDirty=true;schedule();}).observe(document.body,{
     attributes:true,attributeFilter:['data-scene','data-guide-provider'],
   });
   new MutationObserver(schedule).observe(root,{attributes:true,attributeFilter:['data-portal-transition']});
