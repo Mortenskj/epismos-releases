@@ -118,7 +118,7 @@ h1 { margin:.65rem 0 .85rem; font-size:clamp(2.75rem,7.4vw,6rem); line-height:1.
 h1 em { color:var(--accent); font-style:normal }
 .lead,.section-note { max-width:52ch; color:var(--muted) }
 .lead { font-size:clamp(.96rem,1.5vw,1.08rem); text-wrap:pretty }
-.portals { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); width:min(100%,55rem); gap:clamp(.55rem,2.3vw,2rem); margin-top:clamp(1.3rem,3.2vw,2.5rem) }
+.portals { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); width:min(100%,55rem); gap:clamp(.55rem,2.3vw,2rem); margin-top:clamp(1.3rem,3.2vw,2.5rem) }
 .portal {
   display:flex;
   flex-direction:column;
@@ -148,10 +148,11 @@ h1 em { color:var(--accent); font-style:normal }
 [data-theme="light"] .portal-mark .logo-light { display:block }
 .portal-code { color:var(--accent); font:650 clamp(1.05rem,3.9vw,2.4rem)/1 ui-monospace,monospace; letter-spacing:-.14em; padding-inline-end:.16em }
 .portal-name { font:400 clamp(.9rem,2.3vw,1.8rem)/1.17 var(--display); white-space:nowrap }
+.portal-context { color:var(--muted); font-size:.75rem }
 .portal-arrow { color:var(--accent); font-size:.84rem }
 .hero-links { display:flex; justify-content:center; flex-wrap:wrap; align-items:center; column-gap:1.2rem; margin-top:1rem; color:var(--muted); font-size:.81rem }
 .hero-links a { display:inline-flex; align-items:center; gap:.25rem; min-height:44px }
-#installation,#example { width:min(1180px,calc(100% - clamp(2rem,8vw,8rem))); margin-inline:auto }
+#installation,#example { scroll-margin-top:92px; width:min(1180px,calc(100% - clamp(2rem,8vw,8rem))); margin-inline:auto }
 @media (prefers-reduced-motion:reduce) {
   .portal { transition:none }
   .portal:hover { transform:none }
@@ -197,6 +198,7 @@ select { width:100%; min-height:44px; padding:.35rem .55rem; border:1px solid va
 .install-body p { color:var(--muted) }
 .install-body code { overflow-wrap:anywhere }
 .install-body a { display:inline-flex; align-items:center; min-height:44px }
+.install-links { display:flex; flex-wrap:wrap; gap:0 1.2rem }
 .install-body ol { padding-left:1.35rem; margin:.85rem 0 1.15rem }
 .install-body li+li { margin-top:1.2rem }
 .install[data-ready] article h3 { color:var(--accent); font-size:.83rem }
@@ -217,7 +219,7 @@ footer a:hover { color:var(--accent) }
 
 @media (max-width:760px) {
   .workflow,.install[data-ready] { grid-template-columns:1fr }
-  .install-picker { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); border-right:0; border-bottom:1px solid var(--quiet-line); border-radius:18px 18px 0 0 }
+  .install-picker { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border-right:0; border-bottom:1px solid var(--quiet-line); border-radius:18px 18px 0 0 }
   .install-picker button { justify-content:center; padding-inline:.2rem; text-align:center }
   .client-monogram,.install-picker button small { display:none }
 }
@@ -228,6 +230,7 @@ footer a:hover { color:var(--accent) }
   .settings-label { display:none }
   .site-settings summary { padding:0 }
   .hero { min-height:0; padding:clamp(2rem,6dvh,3.1rem) .75rem 1.75rem }
+  .portals { grid-template-columns:repeat(2,minmax(0,1fr)) }
   .portal-name { font-size:clamp(.83rem,4vw,1.03rem) }
   .install-command { flex-direction:column; align-items:stretch }
   .install-command button { align-self:end }

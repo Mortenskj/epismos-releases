@@ -9,7 +9,7 @@
 <link rel="alternate" hreflang="da" href="./">
 <link rel="icon" href="../icon.png">
 <script src="../appearance.js"></script>
-<link rel="stylesheet" href="../page.css">
+<link rel="stylesheet" href="../page.css?v=chat-work">
 </head>
 <body
   data-match="Teksten matcher"
@@ -43,9 +43,13 @@
   <section class="hero" aria-labelledby="title">
     <div class="ambient" aria-hidden="true"></div>
     <p class="eyebrow">episMOS / InstructMOS-plugin</p>
-    <h1 id="title">InstructMOS <em>til terminalen.</em></h1>
-    <p class="lead">Vælg dit kommandolinjeværktøj. InstructMOS hjælper dig med at klargøre, kontrollere og afprøve instruktioner til din AI.</p>
+    <h1 id="title">InstructMOS <em>hvor du arbejder.</em></h1>
+    <p class="lead">Vælg ChatGPT til Chat og Work i browseren, eller vælg dit terminalværktøj. InstructMOS hjælper dig med at klargøre, kontrollere og afprøve instruktioner til din AI.</p>
     <nav class="portals" aria-label="Vælg din installation">
+      <a class="portal" href="#install-chatgpt">
+        <span class="portal-mark" aria-hidden="true"><img class="logo-dark" src="../chatgpt-dark.png" alt="" width="88" height="88"><img class="logo-light" src="../chatgpt-light.png" alt="" width="88" height="88"></span>
+        <span class="portal-name">ChatGPT</span><span class="portal-context">Chat og Work</span><span class="portal-arrow" aria-hidden="true">↓</span>
+      </a>
       <a class="portal" href="#install-claude">
         <span class="portal-mark" aria-hidden="true"><img class="logo-dark" src="../claude-dark.webp" alt="" width="88" height="88"><img class="logo-light" src="../claude-light.webp" alt="" width="88" height="88"></span>
         <span class="portal-name">Claude Code</span><span class="portal-arrow" aria-hidden="true">↓</span>
@@ -60,7 +64,7 @@
       </a>
     </nav>
     <div class="hero-links">
-      <span>Bruger du AI i browseren? <a href="https://instruct.epismos.com/">Åbn webguiden</a></span>
+      <span>Vil du gemme regler for en konto eller et projekt? <a href="https://instruct.epismos.com/#vaelg-chatgpt">Åbn ChatGPT-guiden</a></span>
       <a href="#example">Se, hvad pluginet gør <span aria-hidden="true">↓</span></a>
     </div>
   </section>
@@ -70,13 +74,34 @@
       <p class="section-note">Vælg dit værktøj, og følg de tre trin.</p>
     </div>
     <div class="install">
-      <div class="install-picker" role="group" aria-label="Vælg installationsklient" hidden>
-        <button type="button" aria-pressed="true" aria-controls="install-claude" aria-label="Claude Code"><span class="client-monogram" aria-hidden="true">Cl</span><span>Claude Code<small>Marketplace</small></span></button>
+      <div class="install-picker" role="group" aria-label="Vælg, hvor du vil bruge InstructMOS" hidden>
+        <button type="button" aria-pressed="true" aria-controls="install-chatgpt" aria-label="ChatGPT"><span class="client-monogram" aria-hidden="true">GPT</span><span>ChatGPT<small>Chat og Work</small></span></button>
+        <button type="button" aria-pressed="false" aria-controls="install-claude" aria-label="Claude Code"><span class="client-monogram" aria-hidden="true">Cl</span><span>Claude Code<small>Marketplace</small></span></button>
         <button type="button" aria-pressed="false" aria-controls="install-codex" aria-label="Codex"><span class="client-monogram" aria-hidden="true">Cx</span><span>Codex<small>Marketplace</small></span></button>
         <button type="button" aria-pressed="false" aria-controls="install-gemini" aria-label="Gemini CLI"><span class="client-monogram" aria-hidden="true">Ge</span><span>Gemini CLI<small>ZIP-udvidelse</small></span></button>
       </div>
       <div class="install-body">
         <div class="install-progress" hidden><span class="install-track" aria-hidden="true"></span><span class="install-count">Trin 1 af 3</span></div>
+        <article id="install-chatgpt">
+          <h3>ChatGPT · Chat og Work</h3>
+          <ol>
+            <li>
+              <h4>Find InstructMOS i ChatGPT</h4>
+              <p>Log ind i browseren, og søg efter InstructMOS under Plugins. Vælg det, hvis det vises, og gå til trin 3.</p>
+              <div class="install-links"><a href="https://chatgpt.com/plugins">Åbn ChatGPT Plugins ↗</a><a class="install-use" href="#chatgpt-use">Har du det allerede? Gå til Chat eller Work ↓</a></div>
+            </li>
+            <li>
+              <h4>Hent og upload ZIP’en</h4>
+              <p>Hvis InstructMOS mangler, og du har uploadadgang, så vælg dit workspace i Admin console. Gå til <strong>Plugins → Add → Upload plugin</strong>, og vælg ZIP-filen, som du hentede den. Hvis uploadmuligheden mangler, kan en administrator hjælpe med at gøre pluginet tilgængeligt.</p>
+              <div class="install-links"><a href="https://github.com/Mortenskj/epismos-releases/releases/download/instructmos-v1.5.2/instructmos-1.5.2.zip">Hent InstructMOS 1.5.2 som ZIP</a><a href="https://admin.openai.com/">Åbn Admin console ↗</a></div>
+            </li>
+            <li id="chatgpt-use">
+              <h4>Brug det i Chat eller Work</h4>
+              <p>Start i Chat, eller skift til Work, hvis du har adgang. Skriv <kbd>@</kbd> og vælg InstructMOS, eller find det under Plugins ved skrivefeltet. Prøv “Hjælp mig med at lave instruktioner til mit ChatGPT-projekt.”</p>
+              <a href="https://help.openai.com/en/articles/20001256-plugins-in-chatgpt">OpenAIs guide til plugins ↗</a>
+            </li>
+          </ol>
+        </article>
         <article id="install-claude">
           <h3>Claude Code</h3>
           <ol>
@@ -178,6 +203,6 @@
   <a href="https://github.com/Mortenskj/epismos-releases/tree/instructmos-v1.5.2/plugins/instructmos">Kilde og engelsk installationsvejledning</a>
   <a href="https://github.com/Mortenskj/epismos-releases/releases">Versionshistorik</a>
 </footer>
-<script src="../page.js" defer></script>
+<script src="../page.js?v=chat-work" defer></script>
 </body>
 </html>

@@ -116,6 +116,12 @@ for (const [button, direction] of [[previous, -1], [next, 1]]) {
   });
 }
 
+install.querySelector('.install-use')?.addEventListener('click', event => {
+  event.preventDefault();
+  step = 2;
+  showInstallStep(true);
+});
+
 for (const command of install.querySelectorAll('.install-command')) {
   const button = command.querySelector('button');
   const code = command.querySelector('code');
