@@ -2776,20 +2776,59 @@ body[data-scene="home"] #imos-landing .scene-thread{opacity:.20}
   from {--portal-radius:12px;transform:scale(.984)}
   to {--portal-radius:var(--portal-reach);transform:none}
 }
-#imos-wheel .imos-wheel-controls {row-gap:.42rem}
-#imos-wheel .imos-wheel-controls .imos-wheel-hub {
-  grid-area:1 / 2;justify-self:center;position:relative;width:48px;height:48px;
-  border-color:var(--edge);background:var(--panel);box-shadow:inset 0 1px var(--glint),0 3px 12px var(--shadow);
+#imos-landing #scene-chooser #imos-wheel .imos-wheel-track {
+  --orbit-card-width:clamp(78px,22vw,125px);
+  --orbit-card-height:clamp(56px,14vw,73px);
+  --orbit-radius-x:calc((100% - var(--orbit-card-width)) / 2 - 9px);
+  --orbit-radius-y:clamp(77px,21vw,110px);
+  width:min(100%,35rem);height:calc(2 * var(--orbit-radius-y) + var(--orbit-card-height) + 16px);
+  mask-image:none;zoom:1;
 }
-#imos-wheel .imos-wheel-hub .theme-logo, #imos-wheel .imos-wheel-hub img {width:24px;height:24px}
+#imos-wheel .imos-wheel-space {perspective:none;isolation:isolate}
+#imos-wheel .imos-wheel-space::before, #imos-wheel .imos-wheel-space::after {
+  content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  border-radius:50%;pointer-events:none;
+}
+#imos-wheel .imos-wheel-space::before {
+  width:calc(2 * var(--orbit-radius-x));height:calc(2 * var(--orbit-radius-y));
+  border:1px solid var(--edge);
+  box-shadow:0 0 24px -12px var(--accent),inset 0 0 24px -12px var(--accent);
+}
+#imos-wheel .imos-wheel-space::after {
+  width:calc(2 * var(--orbit-radius-x) - 23px);height:calc(2 * var(--orbit-radius-y) - 25px);
+  border:1px dashed var(--hair);
+  background:radial-gradient(ellipse at center,var(--glint),transparent 65%);
+  z-index:-1;
+}
+#imos-wheel .imos-wheel-cylinder {transform:none}
+#imos-landing #scene-chooser #imos-wheel .imos-wheel-card {
+  inset:auto;left:calc(50% + var(--orbit-x,0) * var(--orbit-radius-x));
+  top:calc(50% + var(--orbit-y,0) * var(--orbit-radius-y));
+  width:var(--orbit-card-width);height:var(--orbit-card-height);
+  padding:.26rem .24rem;gap:.23rem;border-radius:clamp(.75rem,3vw,1.15rem);
+  transform:translate(-50%,-50%) scale(var(--orbit-scale,1));
+}
+#imos-landing #scene-chooser #imos-wheel .imos-wheel-card-title {
+  font:700 clamp(.68rem,1.9vw,.88rem)/1.14 var(--sans);text-wrap:balance;
+}
+#imos-landing #scene-chooser #imos-wheel .imos-wheel-glyph svg {width:20px;height:20px}
+#imos-landing #scene-chooser #imos-wheel .imos-wheel-card[data-centered] {
+  box-shadow:inset 0 1px var(--glint),0 0 0 2px var(--glint),0 8px 20px var(--shadow);
+}
+#imos-landing #imos-wheel .imos-wheel-hub {
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:21;
+  display:grid;place-items:center;width:clamp(54px,16vw,77px);aspect-ratio:1;padding:0;
+  border-radius:50%;border:1px solid var(--edge);background:var(--panel);color:var(--text);cursor:pointer;
+  box-shadow:inset 0 1px var(--glint),0 0 28px var(--glint),0 5px 15px var(--shadow);
+}
+#imos-landing #imos-wheel .imos-wheel-hub:hover {border-color:var(--accent);background:var(--raised)}
+#imos-wheel .imos-wheel-hub .theme-logo, #imos-wheel .imos-wheel-hub img {width:clamp(28px,8vw,40px);height:clamp(28px,8vw,40px)}
 #imos-wheel .imos-wheel-hub .imos-wheel-playback {
   position:absolute;inset:auto -4px -2px auto;display:grid;place-items:center;
   width:18px;height:18px;line-height:1;background:var(--accent-strong);color:var(--canvas);
   border:1px solid var(--panel);border-radius:50%;font:750 .65rem/1 var(--sans);
 }
 #imos-wheel .imos-wheel-hub[aria-disabled="true"] .imos-wheel-playback {display:none}
-#imos-wheel .imos-wheel-controls [data-shift="1"] {grid-area:1 / 3}
-#imos-wheel .imos-wheel-meter {grid-area:2 / 2}
 .imos-wheel-search {display:grid;gap:.35rem;margin:.25rem 0 .65rem;color:var(--text)}
 .imos-wheel-search input {
   width:100%;min-height:44px;padding:.55rem .75rem;color:var(--text);background:var(--panel);
@@ -2895,16 +2934,18 @@ body[data-scene="home"] #imos-landing .scene-thread{opacity:.20}
       </div>
       <div class="imos-station-body imos-compass">
   <div id="imos-wheel" hidden>
-    <p id="imos-wheel-help">Drej hjulet og find den situation, der passer til dit arbejde.</p>
+    <p id="imos-wheel-help">Drej rundt om logoet, eller tryk på den opsætning, du vil åbne.</p>
     <div class="imos-wheel-track" tabindex="0" role="group" aria-label="Arbejdsformer" aria-describedby="imos-wheel-help" aria-keyshortcuts="ArrowLeft ArrowRight Home End Enter">
-      <div class="imos-wheel-space"><div class="imos-wheel-cylinder"></div></div>
+      <div class="imos-wheel-space">
+        <div class="imos-wheel-cylinder"></div>
+        <button type="button" class="imos-wheel-hub" aria-label="Sæt automatisk drejning på pause" hidden>
+          <span class="imos-wheel-logo" aria-hidden="true"></span>
+          <span class="imos-wheel-playback" aria-hidden="true">Ⅱ</span>
+        </button>
+      </div>
     </div>
     <div class="imos-wheel-controls">
       <button type="button" data-shift="-1" aria-label="Forrige arbejdsform">←</button>
-      <button type="button" class="imos-wheel-hub" aria-label="Sæt automatisk drejning på pause" hidden>
-        <span class="imos-wheel-logo" aria-hidden="true"></span>
-        <span class="imos-wheel-playback" aria-hidden="true">Ⅱ</span>
-      </button>
       <span class="imos-wheel-meter" aria-hidden="true"></span>
       <button type="button" data-shift="1" aria-label="Næste arbejdsform">→</button>
     </div>
@@ -3003,11 +3044,20 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
     for (const [i, card] of cards.entries()) {
       const distance = i - position;
       const offset = distance - items.length * Math.round(distance / items.length);
-      // Fade before the shortest path wraps at the back of a three-card wheel.
-      const opacity = Math.max(0, Math.min(1, (1.49 - Math.abs(offset)) / .42));
       card.style.setProperty('--wheel-offset', offset);
-      card.style.opacity = opacity;
-      card.style.pointerEvents = opacity > .2 ? '' : 'none';
+      if (hub) {
+        const angle = 2 * Math.PI * offset / items.length;
+        const y = Math.cos(angle);
+        card.style.setProperty('--orbit-x', Math.sin(angle));
+        card.style.setProperty('--orbit-y', y);
+        card.style.setProperty('--orbit-scale', .94 + .06 * y);
+        card.style.zIndex = 10 + Math.round(y * 6);
+      } else {
+        // Fade before the shortest path wraps at the back of a three-card wheel.
+        const opacity = Math.max(0, Math.min(1, (1.49 - Math.abs(offset)) / .42));
+        card.style.opacity = opacity;
+        card.style.pointerEvents = opacity > .2 ? '' : 'none';
+      }
       card.tabIndex = i === centered ? 0 : -1;
       card.toggleAttribute('data-centered', i === centered);
     }
@@ -3077,7 +3127,7 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
     return !motion.matches && !document.body.hasAttribute('data-ambient-paused');
   }
 
-  function syncAutoplay() {
+  function syncAutoplay({keepPosition = false} = {}) {
     const allowed = autoplayAllowed();
     const running = autoplay && allowed && !document.hidden && items.length > 1;
     const label = running ? 'Sæt automatisk drejning på pause' : 'Start automatisk drejning';
@@ -3089,7 +3139,8 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
     if (!running && autoFrame) {
       cancelAnimationFrame(autoFrame);
       autoFrame = 0;
-      position = target = wrap(Math.round(position));
+      target = Math.round(position);
+      if (!keepPosition) position = target;
       draw();
       showTarget(false);
     } else if (running && !autoFrame) {
@@ -3166,24 +3217,46 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
       case 'Enter': event.preventDefault(); open.click(); break;
     }
   });
+  function angleAt(orbit, event) {
+    const x = (event.clientX - orbit.x) / orbit.rx;
+    const y = (event.clientY - orbit.y) / orbit.ry;
+    return Math.hypot(x,y) > .34 ? Math.atan2(x,y) : null;
+  }
   track.addEventListener('pointerdown', event => {
-    if (!event.isPrimary || event.button !== 0) return;
+    if (!event.isPrimary || event.button !== 0 || hub?.contains(event.target)) return;
     stop();
     velocity = 0;
     dragged = false;
-    const scale = track.getBoundingClientRect().width / track.offsetWidth;
+    const rect = track.getBoundingClientRect();
+    const scale = rect.width / track.offsetWidth;
     drag = { id:event.pointerId, x:event.clientX, y:event.clientY, time:event.timeStamp,
       start:position, last:position, speed:0, pitch:pitch * scale };
+    if (hub) {
+      const rail = getComputedStyle(cylinder.parentElement,'::before');
+      drag.orbit = {x:rect.left + rect.width / 2,y:rect.top + rect.height / 2,
+        rx:parseFloat(rail.width) / 2,ry:parseFloat(rail.height) / 2};
+      drag.orbit.angle = angleAt(drag.orbit,event);
+    }
   });
   track.addEventListener('pointermove', event => {
     if (!drag || event.pointerId !== drag.id) return;
     const dx = event.clientX - drag.x;
-    if (!dragged && Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(event.clientY - drag.y)) {
+    const dy = event.clientY - drag.y;
+    const deliberate = hub && event.pointerType !== 'touch' ? Math.hypot(dx,dy) > 8 : Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy);
+    if (!dragged && deliberate) {
       dragged = true;
       track.setPointerCapture(event.pointerId);
     }
     if (!dragged) return;
-    const next = drag.start - dx / drag.pitch;
+    let next = drag.start - dx / drag.pitch;
+    if (drag.orbit) {
+      const angle = angleAt(drag.orbit,event);
+      const previous = drag.orbit.angle;
+      drag.orbit.angle = angle;
+      if (angle === null || previous === null) return;
+      const turn = (angle - previous) / (2 * Math.PI);
+      next = drag.last - (turn - Math.round(turn)) * items.length;
+    }
     const speed = (next - drag.last) * 1000 / Math.max(12, event.timeStamp - drag.time);
     drag.speed = .65 * Math.max(-10, Math.min(10, speed)) + .35 * drag.speed;
     drag.last = next;
@@ -3210,7 +3283,7 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
     });
   }
   track.addEventListener('click', event => {
-    if (dragged && event.detail) event.preventDefault();
+    if (dragged && event.detail && !hub?.contains(event.target)) event.preventDefault();
   }, true);
   motion.addEventListener('change', () => {
     if (directory) syncAutoplay();
@@ -3224,7 +3297,7 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
     function takeControl(event) {
       if (hub.contains(event.target) || !autoplay) return;
       autoplay = false;
-      syncAutoplay();
+      syncAutoplay({keepPosition:event.type === 'pointerdown' && track.contains(event.target)});
     }
     for (const area of [wheel,directory]) {
       for (const event of ['pointerdown','focusin','keydown','wheel']) {
