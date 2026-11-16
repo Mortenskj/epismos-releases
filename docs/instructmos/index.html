@@ -2758,6 +2758,24 @@ body[data-scene="home"] #imos-landing .scene-thread{opacity:.20}
 #scene-home .scene-portals{margin-top:clamp(1.25rem,3.5vw,2.5rem)}
 #scene-home .scene-portal-symbol{width:clamp(46px,13vw,95px);height:clamp(46px,13vw,95px)}
 #scene-home-title[tabindex="-1"]:focus,#imos-tool .flow-title[tabindex="-1"]:focus{outline:none}
+@property --portal-radius {
+  syntax:"<length>";
+  inherits:false;
+  initial-value:0px;
+}
+:root[data-portal-transition]::view-transition {pointer-events:none}
+:root[data-portal-transition]::view-transition-group(root) {animation:none}
+:root[data-portal-transition]::view-transition-old(root) {animation:none;mix-blend-mode:normal}
+:root[data-portal-transition]::view-transition-new(root) {
+  mix-blend-mode:normal;
+  transform-origin:var(--portal-x) var(--portal-y);
+  mask-image:radial-gradient(circle at var(--portal-x) var(--portal-y),#000 max(0px,calc(var(--portal-radius) - clamp(36px,6vmin,76px))),transparent var(--portal-radius));
+  animation:portal-reveal 690ms cubic-bezier(.24,.65,.32,1) both;
+}
+@keyframes portal-reveal {
+  from {--portal-radius:12px;transform:scale(.984)}
+  to {--portal-radius:var(--portal-reach);transform:none}
+}
 @media(max-width:650px){
   .scene-settings-label{display:none}
   #scene-settings summary{padding:0}
@@ -2877,7 +2895,7 @@ body[data-scene="home"] #imos-landing .scene-thread{opacity:.20}
       <li><a href="#chatgpt-gpt" data-platform="chatgpt" data-label="Custom GPT" data-title="Custom GPT" data-icon="specialist" data-use="Giv en GPT en fast opgave" data-note="Custom GPT kan bruges til fx promptforbedring. På privatkonti kræver denne vej en eksisterende GPT, du kan redigere.">ChatGPT · Custom GPT</a></li>
       <li><a href="#chatgpt-project" data-platform="chatgpt" data-label="Project" data-title="ChatGPT Project" data-icon="project" data-use="Hold reglerne i ét projekt" data-note="Et budgetprojekt kan have egne arbejdsregler, uden at budgetreglerne følger med over i dine almindelige chats.">ChatGPT · Project</a></li>
       <li><a href="#chatgpt-codex" data-platform="chatgpt" data-label="Codex" data-title="Codex" data-icon="code" data-use="Aftal, hvordan Codex arbejder med kode" data-note="Læg dine egne vaner i den globale fil og de regler, der hører til kodebasen, i projektets fil.">ChatGPT · Codex</a></li>
-      <li><a href="#chatgpt-plugin" data-platform="chatgpt" data-label="Plugin / Skill" data-title="ChatGPT · Plugin / Skill" data-icon="plugin" data-use="Brug pluginet i Chat, Work eller Codex" data-note="Bed InstructMOS om at hjælpe dig med at klargøre eller tjekke instruktioner.">ChatGPT · Plugin / Skill</a></li>
+      <li><a href="#chatgpt-plugin" data-platform="chatgpt" data-label="Plugin / Skill" data-title="ChatGPT · Plugin / Skill" data-icon="chatgpt-plugin" data-use="Brug pluginet i Chat, Work eller Codex" data-note="Bed InstructMOS om at hjælpe dig med at klargøre eller tjekke instruktioner.">ChatGPT · Plugin / Skill</a></li>
       <li><a href="#claude-install" data-platform="claude" data-label="Personlige instruktioner" data-title="Claude-instruktioner" data-icon="personal" data-use="Brug reglerne i dine almindelige samtaler" data-note="Vælg personlige instruktioner, hvis du vil have samme arbejdsregler, når du skifter emne.">Claude · Personlige instruktioner</a></li>
       <li><a href="#claude-project" data-platform="claude" data-label="Project" data-title="Claude Project" data-icon="project" data-use="Saml kilder og regler om ét emne" data-note="Vælg et projekt, når fx arbejdet med en rapport skal have sine egne samtaler, kilder og regler.">Claude · Project</a></li>
       <li><a href="#claude-code" data-platform="claude" data-label="Claude Code" data-title="Claude Code" data-icon="code" data-use="Aftal, hvordan Claude Code arbejder med kode" data-note="Brug den personlige fil til dine vaner og projektets fil til aftaler om kodebasen.">Claude · Claude Code</a></li>
@@ -2917,6 +2935,8 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
     specialist:'<path d="m12 3 2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4z"/>',
     code:'<path d="m8 7-5 5 5 5m8-10 5 5-5 5m-2-13-4 16"/>',
     plugin:'<path d="M9 3v4m6-4v4M7 7h10v3a5 5 0 0 1-5 5v5m-6-1h12"/>',
+    // The Plugins glyph in the ChatGPT app navigation.
+    'chatgpt-plugin':'<path fill="currentColor" stroke="none" d="M10.5218 1.88086C15.7229 1.88103 18.3087 5.71877 18.3089 9.1875C18.3089 10.6633 17.6937 12.1653 16.6029 13.0332C16.048 13.4746 15.3664 13.7516 14.5989 13.7559C13.9322 13.7595 13.2416 13.5567 12.5511 13.1387C11.9222 13.6401 11.204 13.9685 10.4544 14.0312C9.53599 14.108 8.63752 13.7834 7.91145 13.0293L7.87336 12.9893C7.85136 12.966 7.81965 12.9309 7.77961 12.8887C7.69927 12.8039 7.58563 12.685 7.45637 12.5488C7.19756 12.2762 6.87269 11.9347 6.60676 11.6572L6.54719 11.5889C6.27541 11.2404 6.30606 10.7359 6.63118 10.4229L6.84407 10.2168L6.10383 9.44629C5.84913 9.18168 5.85681 8.76056 6.12141 8.50586C6.38603 8.25141 6.80722 8.2599 7.06184 8.52441L7.80305 9.29395L9.59602 7.56836L8.85578 6.7998C8.60112 6.53524 8.60886 6.11408 8.87336 5.85938C9.13797 5.60468 9.55909 5.61235 9.81379 5.87695L10.554 6.64648L10.7757 6.43359C11.1245 6.09822 11.6802 6.10963 12.014 6.45996L13.3177 7.83008C14.0606 8.59515 14.354 9.50505 14.2347 10.4219C14.1544 11.0378 13.8892 11.6204 13.5052 12.1455C13.9128 12.3482 14.2767 12.4275 14.5921 12.4258C15.0287 12.4232 15.4267 12.269 15.7747 11.9922C16.4902 11.4228 16.9788 10.3386 16.9788 9.1875C16.9787 6.36412 14.9022 3.2111 10.5218 3.21094C6.86225 3.21102 3.70022 6.00757 3.45442 9.52734C3.17954 13.4659 5.9655 16.7889 10.2073 16.7891C11.819 16.789 13.4116 16.3859 14.5169 15.5303C14.8073 15.3056 15.2257 15.3591 15.4505 15.6494C15.6748 15.9397 15.6214 16.3573 15.3314 16.582C13.918 17.6763 12.0023 18.1191 10.2073 18.1191C5.14889 18.119 1.80185 14.0961 2.12727 9.43457C2.42565 5.16195 6.2212 1.88094 10.5218 1.88086Z"/>',
     notes:'<path d="M5 3h14v18H5zM8 7h8m-8 4h8m-8 4h5M3 7h3m-3 5h3m-3 5h3"/>',
   };
   const result = wheel.querySelector('.imos-wheel-result');
@@ -2937,8 +2957,10 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
     card.href = choice.hash;
     card.draggable = false;
     card.setAttribute('aria-label', 'Åbn ' + choice.dataset.title);
-    card.innerHTML = '<span class="imos-wheel-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-      marks[choice.dataset.icon] + '</svg></span><span class="imos-wheel-card-title"></span>';
+    const icon = choice.dataset.icon;
+    const size = icon === 'chatgpt-plugin' ? 20 : 24;
+    card.innerHTML = '<span class="imos-wheel-glyph"><svg viewBox="0 0 ' + size + ' ' + size + '" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      marks[icon] + '</svg></span><span class="imos-wheel-card-title"></span>';
     card.lastElementChild.textContent = choice.dataset.label;
     return card;
   }
@@ -3025,17 +3047,21 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
     result.setAttribute('aria-live','polite');
   }
 
-  function introduce() {
-    if (introduced.has(vendor) || items.length < 2) return;
-    introduced.add(vendor);
+  function introduce(fromHome) {
+    if ((!fromHome && introduced.has(vendor)) || items.length < 2) return;
     if (motion.matches || document.hidden || wheel.matches(':focus-within') ||
         document.body.hasAttribute('data-ambient-paused')) return;
+    introduced.add(vendor);
     const first = position;
     const start = performance.now();
     result.setAttribute('aria-live','off');
     function turn(now) {
+      if (document.body.hasAttribute('data-ambient-paused')) {
+        stopIntro();
+        return;
+      }
       // A short slow turn shows that the wheel holds more choices.
-      const progress = Math.min(1, Math.max(0, (now - start - 550) / 2650));
+      const progress = Math.min(1, Math.max(0, (now - start - 320) / 2350));
       position = first + Math.min(2, items.length - 1) * (progress * progress * (3 - 2 * progress));
       const centered = Math.round(position);
       if (centered !== target) {
@@ -3138,7 +3164,7 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
   });
   if (directory) {
     for (const area of [wheel,directory]) {
-      for (const event of ['pointerdown','pointermove','focusin','keydown','wheel']) {
+      for (const event of ['pointerdown','focusin','keydown','wheel']) {
         area.addEventListener(event, stopIntro, {capture:true,passive:true});
       }
     }
@@ -3146,9 +3172,9 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
       if (document.hidden) stopIntro();
     });
     window.addEventListener('instructmos:vendor', event => {
-      const {vendor, href, chooser} = event.detail;
+      const {vendor, href, chooser, fromHome} = event.detail;
       changePlatform(vendor, href);
-      if (chooser) introduce();
+      if (chooser) introduce(fromHome);
     });
     directory.open = false;
   }
@@ -3175,7 +3201,7 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
   const vendorLinks = [...switcher.querySelectorAll('a[data-vendor]')];
   const names = new Map(vendorLinks.map(a => [a.dataset.vendor, a.getAttribute('aria-label')]));
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  let vendor = '', scene, animation;
+  let vendor = '', scene, animation, portalTransition;
 
   const label = (id, value) => { document.getElementById(id).textContent = value; };
   const vendorRoute = id => {
@@ -3194,6 +3220,8 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
     const wheelVendor = id.startsWith('vaelg-') && names.has(id.slice(6)) ? id.slice(6) : '';
     const activeChoice = choices.find(a => a.getAttribute('href') === hash);
     const nextScene = wheelVendor ? 'chooser' : !id || ['forside','imos-platforme','imos-guide','imos-landing-main'].includes(id) ? 'home' : 'guide';
+    const fromHome = scene === 'home' && nextScene === 'chooser';
+    if (portalTransition && !fromHome) portalTransition.skipTransition();
     const previousVendor = vendor;
     const changed = scene !== nextScene;
     scene = nextScene;
@@ -3235,7 +3263,7 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
         if (href === hash) a.setAttribute('aria-current','page');
         return a;
       }));
-      window.dispatchEvent(new CustomEvent('instructmos:vendor', {detail:{vendor, href:activeChoice?.getAttribute('href'), chooser:scene === 'chooser'}}));
+      window.dispatchEvent(new CustomEvent('instructmos:vendor', {detail:{vendor, href:activeChoice?.getAttribute('href'), chooser:scene === 'chooser', fromHome}}));
     }
     const back = document.querySelector('.scene-guide-back');
     back.href = vendor ? '#vaelg-' + vendor : '#forside';
@@ -3267,7 +3295,7 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
           target.focus({preventScroll:true});
         }
         animation?.cancel();
-        if (!reduced.matches) {
+        if (!reduced.matches && !document.body.hasAttribute('data-ambient-paused') && !(fromHome && portalTransition)) {
           const view = scene === 'guide' ? tool.querySelector('.page.active') : scene === 'chooser' ? chooser : home;
           animation = view?.animate([{opacity:.45,transform:'translateY(8px)'},{opacity:1,transform:'none'}],
             {duration:260,easing:'cubic-bezier(.2,.7,.25,1)'});
@@ -3275,6 +3303,37 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
       });
     }
   }
+  home.addEventListener('click', event => {
+    const portal = event.target.closest('a.scene-portal');
+    if (!portal || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey ||
+        event.shiftKey || event.altKey || reduced.matches || document.body.hasAttribute('data-ambient-paused') ||
+        !document.startViewTransition || !window.CSS?.registerProperty || portal.hash === location.hash) return;
+    event.preventDefault();
+    if (portalTransition) return;
+    const rect = portal.getBoundingClientRect();
+    const x = event.detail ? event.clientX : rect.left + rect.width / 2;
+    const y = event.detail ? event.clientY : rect.top + rect.height / 2;
+    root.style.setProperty('--portal-x', x + 'px');
+    root.style.setProperty('--portal-y', y + 'px');
+    root.style.setProperty('--portal-reach', (Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y)) + 76) + 'px');
+    root.setAttribute('data-portal-transition', '');
+    const transition = document.startViewTransition(() => new Promise(resolve => {
+      window.addEventListener('hashchange', resolve, {once:true});
+      location.hash = portal.hash;
+    }));
+    portalTransition = transition;
+    transition.ready.catch(() => {}); // A quick second navigation can skip the reveal.
+    transition.finished.finally(() => {
+      portalTransition = null;
+      root.removeAttribute('data-portal-transition');
+    }).catch(() => {});
+  });
+  reduced.addEventListener('change', () => {
+    if (reduced.matches) {
+      portalTransition?.skipTransition();
+      animation?.cancel();
+    }
+  });
   quick.addEventListener('keydown', event => {
     if (event.key === 'Escape' && quick.open) {
       quick.open = false;
