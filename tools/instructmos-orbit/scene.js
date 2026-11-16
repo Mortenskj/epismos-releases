@@ -1,251 +1,279 @@
 import {
   AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, Color,
-  DirectionalLight, EquirectangularReflectionMapping, Group, HemisphereLight,
-  Line, LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial, MeshPhysicalMaterial,
-  OrthographicCamera, Points, PointsMaterial, Scene, SphereGeometry, Sprite,
-  SpriteMaterial, SRGBColorSpace, TorusGeometry, WebGLRenderer,
+  DirectionalLight, DoubleSide, Group, HemisphereLight, Mesh, MeshBasicMaterial,
+  MeshStandardMaterial, OrthographicCamera, PlaneGeometry, PointLight, Points,
+  RingGeometry, Scene, ShaderMaterial, SphereGeometry, SRGBColorSpace, WebGLRenderer,
 } from 'three';
 
 const TAU = Math.PI * 2;
-const palettes = {
-  chatgpt: ['#64dfbf', '#174c42', '#c8faf1'],
-  claude: ['#f1aa78', '#7a3928', '#ffddba'],
-  gemini: ['#a394ff', '#3a318e', '#7fe8fb'],
+const skies = {
+  chatgpt: ['#78ebd8','#5077ca','#e4adbc'],
+  claude: ['#ffbc99','#7563af','#f4d3d1'],
+  gemini: ['#a69cff','#3c91cf','#ffd3bc'],
 };
+const soils = [
+  ['#171d3e','#337f9d','#b0e5ce'],
+  ['#392451','#915889','#ffceaf'],
+  ['#2d233e','#966450','#f6d5a5'],
+  ['#172955','#5359ad','#bad4ff'],
+  ['#16333f','#497d65','#dce2a6'],
+];
+const mix = (a,b,t) => a+(b-a)*t;
+const clamp = n => Math.max(0,Math.min(1,n));
+const rgb = hex => [1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
 
-// Studio softboxes painted into an equirectangular reflection map.
-function studioTexture() {
+function cell(x,y,seed) {
+  let n = Math.imul(x+seed,374761393) + Math.imul(y,668265263);
+  n = Math.imul(n^(n>>>13),1274126177);
+  return ((n^(n>>>16))>>>0)/4294967295;
+}
+function noise(x,y,seed) {
+  const ix = Math.floor(x), iy = Math.floor(y);
+  const dx = x-ix, dy = y-iy;
+  const sx = dx*dx*(3-2*dx), sy = dy*dy*(3-2*dy);
+  return mix(mix(cell(ix,iy,seed),cell(ix+1,iy,seed),sx),
+    mix(cell(ix,iy+1,seed),cell(ix+1,iy+1,seed),sx),sy);
+}
+function clouds(x,y,seed) {
+  return .58*noise(x,y,seed)+.28*noise(x*2.13,y*2.13,seed+4)+.14*noise(x*4.37,y*4.37,seed+13);
+}
+function makeTexture(width,height,sample) {
   const image = document.createElement('canvas');
-  image.width = 256;
-  image.height = 128;
-  const ctx = image.getContext('2d');
-  const horizon = ctx.createLinearGradient(0,0,0,128);
-  horizon.addColorStop(0,'#59657b');
-  horizon.addColorStop(.43,'#303951');
-  horizon.addColorStop(.57,'#161b2b');
-  horizon.addColorStop(1,'#111321');
-  ctx.fillStyle = horizon;
-  ctx.fillRect(0,0,256,128);
-  for (const [x,y,w,h,color] of [[72,32,48,15,'#fff0df'],[174,50,33,9,'#afcfff'],[209,79,27,5,'#6e91bd'],[32,67,14,2,'#ead8c7']]) {
-    const light = ctx.createRadialGradient(0,0,0,0,0,1);
-    light.addColorStop(0,color);
-    light.addColorStop(.52,color);
-    light.addColorStop(1,color+'00');
-    ctx.save();
-    ctx.translate(x,y);
-    ctx.scale(w,h);
-    ctx.fillStyle = light;
-    ctx.fillRect(-1,-1,2,2);
-    ctx.restore();
+  image.width = width;
+  image.height = height;
+  const context = image.getContext('2d');
+  const output = context.createImageData(width,height);
+  for(let y=0;y<height;y++) for(let x=0;x<width;x++) {
+    sample(x/width,y/height,output.data,(y*width+x)*4);
   }
+  context.putImageData(output,0,0);
   const texture = new CanvasTexture(image);
-  texture.mapping = EquirectangularReflectionMapping;
   texture.colorSpace = SRGBColorSpace;
   return texture;
 }
 
-// A compact optical flare also serves as the point-sprite mask.
-function flareTexture() {
-  const image = document.createElement('canvas');
-  image.width = image.height = 64;
-  const ctx = image.getContext('2d');
-  const gradient = ctx.createRadialGradient(32,32,0,32,32,31);
-  gradient.addColorStop(0,'#fff');
-  gradient.addColorStop(.15,'#fffc');
-  gradient.addColorStop(.38,'#fff5');
-  gradient.addColorStop(1,'#fff0');
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0,0,64,64);
-  return new CanvasTexture(image);
+// The luminous arms and the obscuring dust lanes are one authored sky texture.
+function galaxyTexture(palette) {
+  const [cyan,blue,rose] = palette.map(rgb);
+  return makeTexture(480,272,(u,v,pixel,index)=>{
+    const x = (u-.5)*2.12, y = (v-.5)*1.55;
+    const ax = .89*x-.46*y, ay = (.46*x+.89*y)*1.24;
+    const r = Math.hypot(ax,ay);
+    const grain = clouds(ax*6.3,ay*6.3,11);
+    const arms = .5+.5*Math.cos(2*Math.atan2(ay,ax)-4.15*Math.log(r+.13)+grain*2.7);
+    const lane = .5+.5*Math.cos(arms*5.1+clouds(ax*18,ay*18,31)*4.8);
+    const envelope = Math.exp(-r*r*2.25);
+    const dust = Math.pow(arms,2.2)*envelope*(.25+.75*grain)*(.53+.47*lane)*clamp(r*4.9);
+    const veil = Math.pow(grain,2.3)*envelope*.82;
+    const spill = Math.exp(-Math.pow(ay+.22*ax+.09,2)*15-ax*ax*.76)*.74*(.35+.65*grain);
+    const tint = clamp(.31+ax*.47+grain*.29);
+    const vignette = Math.exp(-(x*x+y*y)*.73);
+    for(let i=0;i<3;i++) {
+      const lights = mix(cyan[i],rose[i],tint);
+      pixel[index+i] = 5+i*4 + vignette*(lights*dust*.77+blue[i]*veil*.27+blue[i]*spill*.14);
+    }
+    pixel[index+3] = 255;
+  });
 }
 
-function mountOrbit(stage, canvas) {
-  const root = document.documentElement;
-  const track = stage.parentElement;
-  const button = stage.querySelector('.imos-wheel-hub');
-  let renderer, drawPending = 0, visible = false, contextLost = false;
-  let dimensionsDirty = true, finishDirty = true, lastPaint = -Infinity;
-  let frame = {position:0,count:4}, width, height, rx, ry, depth;
+// Equirectangular surface maps. Gas giants use perturbed bands; rocky worlds use grain and mineral patches.
+function planetTexture(colors,index) {
+  const [base,mid,light] = colors.map(rgb);
+  const gas = index===1 || index===3;
+  return makeTexture(144,72,(u,v,pixel,p)=>{
+    const theta = TAU*u, latitude = Math.PI*(v-.5);
+    const x = Math.cos(theta)*Math.cos(latitude), z = Math.sin(theta)*Math.cos(latitude);
+    const y = Math.sin(latitude);
+    const large = clouds(x*4.2+y*2,z*4.2-y*2.6,index+24);
+    const ect = noise(x*14+y*9,z*14-y*9.1,index+8);
+    const terrain = gas ? .5+.5*Math.sin(y*27+large*4.6+.65*ect) :
+      clamp(.52+(large-.46)*2.6+(ect-.52)*.34);
+    for(let c=0;c<3;c++) pixel[p+c]=mix(mix(base[c],mid[c],clamp(terrain*1.5)),light[c],
+      Math.pow(terrain,3.4)*(.64+.31*ect));
+    pixel[p+3]=255;
+  });
+}
 
-  function init() {
-    const gpu = new WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:'low-power'});
-    const world = new Scene();
-    world.environment = studioTexture();
-    const camera = new OrthographicCamera(-1,1,1,-1,1,1400);
-    camera.position.z = 700;
-    const orbit = new Group();
-    world.add(orbit);
-    const metal = new MeshPhysicalMaterial({metalness:.66,roughness:.28,clearcoat:.38,envMapIntensity:1.4});
-    const edge = new MeshBasicMaterial({transparent:true,opacity:.38,depthWrite:false});
-    const outer = new Mesh(new TorusGeometry(1,.019,12,144),metal);
-    const inner = new Mesh(new TorusGeometry(.94,.0036,5,144),edge);
-    const under = new Mesh(new TorusGeometry(1.02,.007,7,144),edge);
-    under.position.z = -.049;
-    const glimmer = new Mesh(new TorusGeometry(1.002,.022,8,32,.70),
-      new MeshBasicMaterial({transparent:true,opacity:.48,depthWrite:false}));
-    orbit.add(outer,inner,under,glimmer);
-
-    // Short paired engravings in the same orbital plane as the rails.
-    const marks = [];
-    for (let i=0;i<96;i++) {
-      const angle = i * TAU / 96;
-      const end = i % 8 ? 1.062 : 1.094;
-      const x = Math.cos(angle), y = Math.sin(angle);
-      marks.push(1.045*x,1.045*y,-.025,end*x,end*y,-.025);
-    }
-    const engraving = new LineBasicMaterial({transparent:true,opacity:.39});
-    const ticks = new BufferGeometry();
-    ticks.setAttribute('position',new BufferAttribute(new Float32Array(marks),3));
-    orbit.add(new LineSegments(ticks,engraving));
-
-    const glass = new MeshPhysicalMaterial({
-      metalness:.32,roughness:.25,clearcoat:1,clearcoatRoughness:.15,
-      iridescence:.26,envMapIntensity:1.25,
-    });
-    const globe = new Mesh(new SphereGeometry(1,36,24),glass);
-    const cradle = new Group();
-    for (const tilt of [-.88,.62]) {
-      const ring = new Mesh(new TorusGeometry(1.082,.016,8,104),metal);
-      ring.rotation.set(.53,tilt,.26);
-      cradle.add(ring);
-    }
-    world.add(globe,cradle);
-
-    const flare = flareTexture();
-    const glow = new Sprite(new SpriteMaterial({map:flare,transparent:true,opacity:.38,depthWrite:false,blending:AdditiveBlending}));
-    glow.position.z = -24;
-    const tip = new Sprite(new SpriteMaterial({map:flare,transparent:true,opacity:.87,depthWrite:false}));
-    tip.scale.setScalar(24);
-    const tether = new BufferGeometry();
-    const line = new BufferAttribute(new Float32Array(6),3);
-    tether.setAttribute('position',line);
-    const signal = new Line(tether,new LineBasicMaterial({transparent:true,opacity:.7,depthWrite:false}));
-    signal.frustumCulled = false;
-    world.add(glow,tip,signal);
-
-    const field = [];
-    for(let i=0;i<48;i++) {
-      const angle = i * 2.39996;
-      const radius = .3 + .76 * Math.sqrt((i+.5)/48);
-      field.push(radius*Math.cos(angle),.86*radius*Math.sin(angle),-.4+.3*Math.cos(i*1.9));
-    }
-    const particles = new BufferGeometry();
-    particles.setAttribute('position',new BufferAttribute(new Float32Array(field),3));
-    const mist = new Points(particles,new PointsMaterial({map:flare,size:4,transparent:true,opacity:.45,depthWrite:false,sizeAttenuation:false}));
-    world.add(mist);
-
-    const fill = new HemisphereLight('#fff4e9','#57688a',1.65);
-    const key = new DirectionalLight('#fff4de',3.2);
-    key.position.set(-4,6,8);
-    const rim = new DirectionalLight('#a1cfff',2.3);
-    rim.position.set(4,-1,2);
-    world.add(fill,key,rim);
-    return {gpu,world,camera,orbit,metal,edge,engraving,glass,globe,cradle,glow,tip,signal,line,mist,rim,glimmer};
+function starLayer(count,seed,strength) {
+  const positions=[], intensities=[];
+  for(let i=0;i<count;i++) {
+    const x = cell(i,1,seed)*2-1;
+    const y = cell(i,7,seed)*2-1;
+    positions.push(x,y,cell(i,13,seed)*2-1);
+    intensities.push(cell(i,17,seed));
   }
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position',new BufferAttribute(new Float32Array(positions),3));
+  geometry.setAttribute('brightness',new BufferAttribute(new Float32Array(intensities),1));
+  const material = new ShaderMaterial({
+    uniforms:{tint:{value:new Color('#fff')},density:{value:1},strength:{value:strength}},
+    vertexShader:`
+      attribute float brightness;
+      uniform float density;
+      varying float power;
+      void main() {
+        power=brightness;
+        gl_PointSize=(1.2+pow(brightness,6.0)*9.0)*density;
+        gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);
+      }
+    `,
+    fragmentShader:`
+      varying float power;
+      uniform vec3 tint;
+      uniform float strength;
+      void main() {
+        vec2 p=abs(gl_PointCoord-.5);
+        float core=exp(-90.*dot(p,p));
+        float halo=exp(-26.*dot(p,p))*.42;
+        float ray=(exp(-90.*p.x)*exp(-8.*p.y)+exp(-90.*p.y)*exp(-8.*p.x))*.20;
+        gl_FragColor=vec4(mix(tint,vec3(.95,.95,1.),power),
+          (core+halo+ray*pow(power,9.))*mix(.12,.83,power)*strength);
+      }
+    `,
+    transparent:true,depthWrite:false,blending:AdditiveBlending
+  });
+  return new Points(geometry,material);
+}
 
-  let art;
+function makeArt(canvas) {
+  const renderer = new WebGLRenderer({canvas,antialias:true,powerPreference:'low-power'});
+  const world = new Scene();
+  const camera = new OrthographicCamera(-1,1,1,-1,1,1800);
+  camera.position.z=720;
+  const sky = new Mesh(new PlaneGeometry(1,1),new MeshBasicMaterial());
+  sky.position.z=-430;
+  const far = starLayer(700,19,.69);
+  const near = starLayer(230,47,.98);
+  far.position.z=-350;
+  near.position.z=-244;
+  const sphere = new SphereGeometry(1,32,22);
+  const planets = soils.map((colors,i)=>{
+    const group = new Group();
+    const body = new Mesh(sphere,new MeshStandardMaterial({
+      map:planetTexture(colors,i),roughness:.88,metalness:.04,
+    }));
+    group.add(body);
+    if(i===2) {
+      const ring = new Mesh(new RingGeometry(1.22,1.66,56),
+        new MeshBasicMaterial({color:'#ddc6aa',side:DoubleSide,transparent:true,opacity:.52,depthWrite:false}));
+      ring.rotation.set(.97,-.25,-.50);
+      group.add(ring);
+    }
+    world.add(group);
+    return {group,body};
+  });
+  const sun = new PointLight('#fff0d6',2.6,0,0);
+  const fill = new HemisphereLight('#b6ccff','#4a4968',.74);
+  const rim = new DirectionalLight('#a3bfff',1.65);
+  rim.position.set(-5,4,6);
+  world.add(sky,far,near,sun,fill,rim);
+  return {renderer,world,camera,sky,far,near,sun,planets};
+}
+
+function mountOrbit(stage,canvas) {
+  const root=document.documentElement;
+  const track=stage.parentElement;
+  const firstCard=stage.querySelector('.imos-wheel-card');
+  let frame={position:-Number(firstCard?.style.getPropertyValue('--wheel-offset') || 0),
+    count:stage.querySelectorAll('.imos-wheel-card').length || 4};
+  let art,visible=false,contextLost=false,pending=0,lastPaint=-Infinity;
+  let dimensionsDirty=true,paletteDirty=true;
+  let rx,ry,depth,planetRadius,planetLift,depthScale;
+  const skiesByVendor=new Map();
+
+  function canPaint() {
+    return visible && !contextLost && !document.hidden && document.body.dataset.scene==='chooser' &&
+      !root.hasAttribute('data-portal-transition');
+  }
+  function schedule() {
+    if(!pending && canPaint()) pending=requestAnimationFrame(paint);
+  }
   function paint(now) {
-    drawPending = 0;
+    pending=0;
     if(!canPaint()) return;
-    if(now-lastPaint<30) {
+    if(now-lastPaint<32) {
       schedule();
       return;
     }
     if(!art) {
-      try { art = init(); }
-      catch { contextLost = true; return; }
-      renderer = art.gpu;
+      try {art=makeArt(canvas);}
+      catch {contextLost=true;return;}
     }
     if(dimensionsDirty) {
-      const w = stage.clientWidth, h = stage.clientHeight;
-      if(!w || !h) return;
-      const rail = getComputedStyle(stage,'::before');
-      rx = parseFloat(rail.width)/2;
-      ry = parseFloat(rail.height)/2;
-      if(!rx || !ry) return;
-      const tilt = Math.acos(Math.min(ry/rx,1));
-      depth = rx * Math.sin(tilt);
-      width = w;
-      height = h;
-      renderer.setPixelRatio(Math.min(devicePixelRatio || 1,1.5));
-      renderer.setSize(width,height,false);
+      const width=stage.clientWidth,height=stage.clientHeight;
+      const planet=stage.querySelector('.imos-wheel-planet');
+      if(!width || !height || !planet) return;
+      const rail=getComputedStyle(stage,'::before');
+      rx=parseFloat(rail.width)/2;
+      ry=parseFloat(rail.height)/2;
+      depth=Math.max(32,Math.sqrt(Math.max(0,rx*rx-ry*ry)));
+      planetRadius=planet.offsetWidth/2;
+      planetLift=planet.closest('a').offsetHeight*.11;
+      depthScale=Number(getComputedStyle(track).getPropertyValue('--orbit-depth-size'));
+      const pixelRatio=Math.min(devicePixelRatio || 1,1.4);
+      art.renderer.setPixelRatio(pixelRatio);
+      art.renderer.setSize(width,height,false);
       Object.assign(art.camera,{left:-width/2,right:width/2,top:height/2,bottom:-height/2});
       art.camera.updateProjectionMatrix();
-      art.orbit.scale.set(rx,ry/Math.max(.3,Math.cos(tilt)),rx);
-      art.orbit.rotation.x = -tilt;
-      const radius = button.offsetWidth/2;
-      art.globe.scale.setScalar(radius);
-      art.cradle.scale.setScalar(radius);
-      art.glow.scale.setScalar(radius*4.1);
-      art.mist.scale.set(rx,ry*1.24,rx);
-      dimensionsDirty = false;
+      art.sky.scale.set(width*1.1,height*1.1,1);
+      art.far.scale.set(width*.60,height*.62,39);
+      art.near.scale.set(width*.63,height*.65,38);
+      art.far.material.uniforms.density.value=pixelRatio*.79;
+      art.near.material.uniforms.density.value=pixelRatio*1.01;
+      art.sun.position.z=depth*.34;
+      dimensionsDirty=false;
     }
-    if(finishDirty) {
-      const [glint,body,signal] = palettes[document.body.dataset.guideProvider] || palettes.chatgpt;
-      const light = root.dataset.theme === 'light';
-      art.metal.color.set(glint).lerp(new Color(body),light?.49:.22);
-      art.glass.color.set(body).lerp(new Color(glint),light?.76:.13);
-      art.glass.emissive.set(glint);
-      art.glass.emissiveIntensity = light?.06:.15;
-      art.edge.color.set(body).lerp(new Color(glint),light?.21:.69);
-      art.engraving.color.copy(art.edge.color);
-      art.signal.material.color.set(light?body:signal);
-      art.tip.material.color.set(light?glint:signal);
-      art.glimmer.material.color.set(light?glint:signal);
-      art.glow.material.color.set(glint);
-      art.glow.material.opacity = light?.19:.46;
-      art.mist.material.color.copy(art.edge.color);
-      art.rim.color.set(signal);
-      finishDirty = false;
+    if(paletteDirty) {
+      const name=document.body.dataset.guideProvider;
+      const palette=skies[name] || skies.chatgpt;
+      if(!skiesByVendor.has(name)) skiesByVendor.set(name,galaxyTexture(palette));
+      art.sky.material.map=skiesByVendor.get(name);
+      art.sky.material.needsUpdate=true;
+      art.far.material.uniforms.tint.value.set(palette[1]);
+      art.near.material.uniforms.tint.value.set(palette[2]);
+      paletteDirty=false;
     }
-    const phase = TAU * frame.position / frame.count;
-    const angle = TAU * (Math.round(frame.position)-frame.position) / frame.count;
-    const x = Math.sin(angle), y = Math.cos(angle);
-    art.tip.position.set(rx*x,-ry*y,depth*y+4);
-    art.line.setXYZ(0,button.offsetWidth*.19*x,-button.offsetWidth*.19*y,10);
-    art.line.setXYZ(1,rx*x,-ry*y,depth*y+2);
-    art.line.needsUpdate = true;
-    art.cradle.rotation.z = .36*Math.sin(phase);
-    art.globe.rotation.y = phase;
-    art.glimmer.rotation.z = phase+.18;
-    renderer.render(art.world,art.camera);
-    stage.dataset.orbitRenderer = 'three';
-    lastPaint = now;
+    const phase=TAU*frame.position/frame.count;
+    art.far.position.x=5*Math.sin(phase);
+    art.far.position.y=3*Math.cos(phase);
+    art.near.position.x=18*Math.sin(phase+.35);
+    art.near.position.y=8*Math.cos(phase);
+    art.sky.position.x=-5*Math.sin(phase);
+    for(let i=0;i<art.planets.length;i++) {
+      const {group,body}=art.planets[i];
+      group.visible=i<frame.count;
+      const angle=TAU*(i-frame.position)/frame.count;
+      const front=Math.cos(angle);
+      const distance=(1-front)/2;
+      const labelScale=1-depthScale*distance;
+      group.position.set(rx*Math.sin(angle),-ry*front+planetLift*labelScale,depth*front);
+      group.scale.setScalar(planetRadius*labelScale*(1-.13*distance));
+      body.rotation.y=phase+i*.93;
+    }
+    art.renderer.render(art.world,art.camera);
+    stage.dataset.orbitRenderer='three';
+    lastPaint=now;
   }
 
-  function canPaint() {
-    return visible && !contextLost && !document.hidden && document.body.dataset.scene === 'chooser' &&
-      !root.hasAttribute('data-portal-transition');
-  }
-  function schedule() {
-    if(!drawPending && canPaint()) {
-      drawPending = requestAnimationFrame(paint);
-    }
-  }
-  track.addEventListener('imos:orbit-frame',event => {
-    frame = event.detail;
-    schedule();
-  });
-  canvas.addEventListener('webglcontextlost',event => {
+  track.addEventListener('imos:orbit-frame',event=>{frame=event.detail;schedule();});
+  canvas.addEventListener('webglcontextlost',event=>{
     event.preventDefault();
-    contextLost = true;
+    contextLost=true;
     delete stage.dataset.orbitRenderer;
   });
-  canvas.addEventListener('webglcontextrestored',() => {
-    contextLost = false;
-    dimensionsDirty = finishDirty = true;
+  canvas.addEventListener('webglcontextrestored',()=>{
+    contextLost=false;
+    dimensionsDirty=paletteDirty=true;
     schedule();
   });
-  new ResizeObserver(() => { dimensionsDirty = true; schedule(); }).observe(stage);
-  new IntersectionObserver(([element]) => {
-    visible = element.isIntersecting;
-    if(visible) schedule();
-  }).observe(stage);
-  const themeObserver = new MutationObserver(() => { finishDirty = true; schedule(); });
-  themeObserver.observe(document.body,{attributes:true,attributeFilter:['data-scene','data-guide-provider']});
-  themeObserver.observe(root,{attributes:true,attributeFilter:['data-theme','data-portal-transition']});
+  new ResizeObserver(()=>{dimensionsDirty=true;schedule();}).observe(stage);
+  new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;schedule();}).observe(stage);
+  new MutationObserver(()=>{paletteDirty=true;schedule();}).observe(document.body,{
+    attributes:true,attributeFilter:['data-scene','data-guide-provider'],
+  });
+  new MutationObserver(schedule).observe(root,{attributes:true,attributeFilter:['data-portal-transition']});
   document.addEventListener('visibilitychange',schedule);
 }
 
-const canvas = document.querySelector('#imos-wheel .imos-orbit-canvas');
+const canvas=document.querySelector('#imos-wheel .imos-orbit-canvas');
 if(canvas) mountOrbit(canvas.parentElement,canvas);
