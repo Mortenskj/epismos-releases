@@ -2776,6 +2776,29 @@ body[data-scene="home"] #imos-landing .scene-thread{opacity:.20}
   from {--portal-radius:12px;transform:scale(.984)}
   to {--portal-radius:var(--portal-reach);transform:none}
 }
+#imos-wheel .imos-wheel-controls {row-gap:.42rem}
+#imos-wheel .imos-wheel-controls .imos-wheel-hub {
+  grid-area:1 / 2;justify-self:center;position:relative;width:48px;height:48px;
+  border-color:var(--edge);background:var(--panel);box-shadow:inset 0 1px var(--glint),0 3px 12px var(--shadow);
+}
+#imos-wheel .imos-wheel-hub .theme-logo, #imos-wheel .imos-wheel-hub img {width:24px;height:24px}
+#imos-wheel .imos-wheel-hub .imos-wheel-playback {
+  position:absolute;inset:auto -4px -2px auto;display:grid;place-items:center;
+  width:18px;height:18px;line-height:1;background:var(--accent-strong);color:var(--canvas);
+  border:1px solid var(--panel);border-radius:50%;font:750 .65rem/1 var(--sans);
+}
+#imos-wheel .imos-wheel-hub[aria-disabled="true"] .imos-wheel-playback {display:none}
+#imos-wheel .imos-wheel-controls [data-shift="1"] {grid-area:1 / 3}
+#imos-wheel .imos-wheel-meter {grid-area:2 / 2}
+.imos-wheel-search {display:grid;gap:.35rem;margin:.25rem 0 .65rem;color:var(--text)}
+.imos-wheel-search input {
+  width:100%;min-height:44px;padding:.55rem .75rem;color:var(--text);background:var(--panel);
+  border:1px solid var(--edge);border-radius:var(--small-radius);font:400 1rem var(--sans);
+}
+#imos-landing .imos-wheel-links a[aria-current="true"] {
+  padding-inline:.7rem;background:var(--raised);color:var(--accent-strong);
+  border-inline-start:2px solid var(--accent);font-weight:750;
+}
 @media(max-width:650px){
   .scene-settings-label{display:none}
   #scene-settings summary{padding:0}
@@ -2878,6 +2901,10 @@ body[data-scene="home"] #imos-landing .scene-thread{opacity:.20}
     </div>
     <div class="imos-wheel-controls">
       <button type="button" data-shift="-1" aria-label="Forrige arbejdsform">←</button>
+      <button type="button" class="imos-wheel-hub" aria-label="Sæt automatisk drejning på pause" hidden>
+        <span class="imos-wheel-logo" aria-hidden="true"></span>
+        <span class="imos-wheel-playback" aria-hidden="true">Ⅱ</span>
+      </button>
       <span class="imos-wheel-meter" aria-hidden="true"></span>
       <button type="button" data-shift="1" aria-label="Næste arbejdsform">→</button>
     </div>
@@ -2890,6 +2917,10 @@ body[data-scene="home"] #imos-landing .scene-thread{opacity:.20}
   </div>
   <details class="imos-wheel-directory" open>
     <summary>Se alle arbejdsformer</summary>
+    <label class="imos-wheel-search" hidden>Søg efter en arbejdsform
+      <input type="search" placeholder="Fx projekt eller plugin" autocomplete="off">
+    </label>
+    <p class="imos-wheel-no-results" role="status" hidden>Ingen arbejdsformer matcher din søgning.</p>
     <ul class="imos-wheel-links">
       <li><a href="#chatgpt-install" data-platform="chatgpt" data-label="Personlige instruktioner" data-title="ChatGPT-instruktioner" data-icon="personal" data-use="Brug reglerne i dine almindelige chats" data-note="Vælg personlige instruktioner, hvis du ofte beder om det samme på tværs af emner.">ChatGPT · Personlige instruktioner</a></li>
       <li><a href="#chatgpt-gpt" data-platform="chatgpt" data-label="Custom GPT" data-title="Custom GPT" data-icon="specialist" data-use="Giv en GPT en fast opgave" data-note="Custom GPT kan bruges til fx promptforbedring. På privatkonti kræver denne vej en eksisterende GPT, du kan redigere.">ChatGPT · Custom GPT</a></li>
@@ -2941,8 +2972,10 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
   };
   const result = wheel.querySelector('.imos-wheel-result');
   const remembered = new Map();
-  const introduced = new Set();
-  let introFrame = 0;
+  const hub = wheel.querySelector('.imos-wheel-hub');
+  const search = directory?.querySelector('input[type="search"]');
+  const noResults = directory?.querySelector('.imos-wheel-no-results');
+  let autoplay = false, autoFrame = 0;
   const frequency = 11;
   const damping = .78;
   const pitch = 481 * Math.sin(15 * Math.PI / 180);
@@ -2980,17 +3013,21 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
     }
   }
 
-  function showTarget() {
+  function showTarget(remember = true) {
     const index = wrap(target);
     const active = items[index];
     const info = active.dataset;
-    remembered.set(vendor, index);
+    if (remember) remembered.set(vendor, index);
     text('.imos-wheel-context', info.use);
     text('.imos-wheel-description', info.note);
     text('.imos-wheel-position', info.title + ', ' + (index + 1) + ' af ' + items.length);
     open.href = active.hash;
     open.firstElementChild.textContent = 'Åbn ' + info.title;
     for (const [i, tick] of [...meter.children].entries()) tick.toggleAttribute('data-current', i === index);
+    if (directory) for (const choice of choices) {
+      if (choice === active) choice.setAttribute('aria-current','true');
+      else choice.removeAttribute('aria-current');
+    }
   }
 
   function stop() {
@@ -3036,47 +3073,63 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
     }
   }
 
-  function stopIntro() {
-    if (!introFrame) return;
-    cancelAnimationFrame(introFrame);
-    introFrame = 0;
-    position = target = Math.round(position);
-    velocity = 0;
-    draw();
-    showTarget();
-    result.setAttribute('aria-live','polite');
+  function autoplayAllowed() {
+    return !motion.matches && !document.body.hasAttribute('data-ambient-paused');
   }
 
-  function introduce(fromHome) {
-    if ((!fromHome && introduced.has(vendor)) || items.length < 2) return;
-    if (motion.matches || document.hidden || wheel.matches(':focus-within') ||
-        document.body.hasAttribute('data-ambient-paused')) return;
-    introduced.add(vendor);
-    const first = position;
-    const start = performance.now();
-    result.setAttribute('aria-live','off');
-    function turn(now) {
-      if (document.body.hasAttribute('data-ambient-paused')) {
-        stopIntro();
-        return;
-      }
-      // A short slow turn shows that the wheel holds more choices.
-      const progress = Math.min(1, Math.max(0, (now - start - 320) / 2350));
-      position = first + Math.min(2, items.length - 1) * (progress * progress * (3 - 2 * progress));
-      const centered = Math.round(position);
-      if (centered !== target) {
-        target = centered;
-        showTarget();
-      }
+  function syncAutoplay() {
+    const allowed = autoplayAllowed();
+    const running = autoplay && allowed && !document.hidden && items.length > 1;
+    const label = running ? 'Sæt automatisk drejning på pause' : 'Start automatisk drejning';
+    hub.setAttribute('aria-label', label);
+    hub.title = allowed ? label : 'Automatisk drejning er slået fra';
+    hub.setAttribute('aria-disabled', String(!allowed));
+    hub.querySelector('.imos-wheel-playback').textContent = running ? 'Ⅱ' : '▷';
+    result.setAttribute('aria-live', running ? 'off' : 'polite');
+    if (!running && autoFrame) {
+      cancelAnimationFrame(autoFrame);
+      autoFrame = 0;
+      position = target = wrap(Math.round(position));
       draw();
-      if (progress < 1) introFrame = requestAnimationFrame(turn);
-      else stopIntro();
+      showTarget(false);
+    } else if (running && !autoFrame) {
+      stop();
+      velocity = 0;
+      position = (position % items.length + items.length) % items.length;
+      let last = performance.now() + 240;
+      function turn(now) {
+        const step = Math.min(50, Math.max(0, now - last));
+        if (step) {
+          last = now;
+          position = (position + step / 2500 + items.length) % items.length;
+          const centered = Math.round(position);
+          if (centered !== target) {
+            target = centered;
+            showTarget(false);
+          }
+          draw();
+        }
+        autoFrame = requestAnimationFrame(turn);
+      }
+      autoFrame = requestAnimationFrame(turn);
     }
-    introFrame = requestAnimationFrame(turn);
+  }
+
+  function filterDirectory() {
+    const words = search.value.trim().toLocaleLowerCase('da').split(/\s+/);
+    let first = -1;
+    for (const choice of choices) {
+      const index = items.indexOf(choice);
+      const label = [choice.dataset.title, choice.dataset.label, choice.dataset.use, choice.dataset.note].join(' ').toLocaleLowerCase('da');
+      const shown = index >= 0 && words.every(word => label.includes(word));
+      choice.closest('li').hidden = !shown;
+      if (shown && first === -1) first = index;
+    }
+    noResults.hidden = first !== -1;
+    return first;
   }
 
   function changePlatform(name, href) {
-    stopIntro();
     stop();
     velocity = 0;
     drag = null;
@@ -3084,10 +3137,13 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
     if (vendor !== name) {
       vendor = name;
       items = choices.filter(choice => choice.dataset.platform === name);
-      if (directory) for (const choice of choices) choice.closest('li').hidden = choice.dataset.platform !== name;
       cards = items.map(makeCard);
       cylinder.replaceChildren(...cards);
       meter.replaceChildren(...items.map(() => document.createElement('i')));
+    }
+    if (directory) {
+      search.value = '';
+      filterDirectory();
     }
     const selected = items.findIndex(choice => choice.hash === href);
     const featured = items.findIndex(choice => ['project','notes'].includes(choice.dataset.icon));
@@ -3157,24 +3213,54 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
     if (dragged && event.detail) event.preventDefault();
   }, true);
   motion.addEventListener('change', () => {
+    if (directory) syncAutoplay();
     if (motion.matches && !drag) {
-      stopIntro();
       settle(target);
     }
   });
   if (directory) {
+    hub.hidden = false;
+    search.closest('label').hidden = false;
+    function takeControl(event) {
+      if (hub.contains(event.target) || !autoplay) return;
+      autoplay = false;
+      syncAutoplay();
+    }
     for (const area of [wheel,directory]) {
       for (const event of ['pointerdown','focusin','keydown','wheel']) {
-        area.addEventListener(event, stopIntro, {capture:true,passive:true});
+        area.addEventListener(event, takeControl, {capture:true,passive:true});
       }
     }
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) stopIntro();
+    hub.addEventListener('click', () => {
+      if (!autoplayAllowed()) return;
+      autoplay = !autoplay;
+      syncAutoplay();
     });
+    search.addEventListener('input', event => {
+      takeControl(event);
+      const match = filterDirectory();
+      if (match >= 0 && search.value.trim()) {
+        const distance = match - wrap(target);
+        const shortest = distance - items.length * Math.round(distance / items.length);
+        settle(target + shortest);
+      }
+    });
+    document.addEventListener('visibilitychange', syncAutoplay);
+    new MutationObserver(syncAutoplay).observe(document.body, {attributes:true,attributeFilter:['data-ambient-paused']});
     window.addEventListener('instructmos:vendor', event => {
-      const {vendor, href, chooser, fromHome} = event.detail;
-      changePlatform(vendor, href);
-      if (chooser) introduce(fromHome);
+      const {vendor:name, href, chooser, logo} = event.detail;
+      autoplay = false;
+      syncAutoplay();
+      if (!chooser || vendor !== name) directory.open = false;
+      if (hub.dataset.vendor !== name) {
+        const mark = logo.cloneNode(true);
+        for (const img of mark.querySelectorAll('img')) img.alt = '';
+        hub.querySelector('.imos-wheel-logo').replaceChildren(mark);
+        hub.dataset.vendor = name;
+      }
+      changePlatform(name, href);
+      autoplay = chooser && !directory.open;
+      syncAutoplay();
     });
     directory.open = false;
   }
@@ -3220,8 +3306,7 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
     const wheelVendor = id.startsWith('vaelg-') && names.has(id.slice(6)) ? id.slice(6) : '';
     const activeChoice = choices.find(a => a.getAttribute('href') === hash);
     const nextScene = wheelVendor ? 'chooser' : !id || ['forside','imos-platforme','imos-guide','imos-landing-main'].includes(id) ? 'home' : 'guide';
-    const fromHome = scene === 'home' && nextScene === 'chooser';
-    if (portalTransition && !fromHome) portalTransition.skipTransition();
+    if (portalTransition && portalTransition.hash !== hash) portalTransition.effect.skipTransition();
     const previousVendor = vendor;
     const changed = scene !== nextScene;
     scene = nextScene;
@@ -3244,7 +3329,8 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
     }
     if (vendor) {
       const name = names.get(vendor);
-      const mark = document.querySelector('.scene-switch [data-vendor="'+vendor+'"] .theme-logo').cloneNode(true);
+      const logo = vendorLinks.find(link => link.dataset.vendor === vendor).querySelector('.theme-logo');
+      const mark = logo.cloneNode(true);
       for (const img of mark.querySelectorAll('img')) img.alt = name;
       document.getElementById('scene-vendor-name').replaceChildren(mark,'Arbejdsformer');
       label('scene-quick-heading', 'Hurtig navigation i ' + name);
@@ -3263,7 +3349,7 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
         if (href === hash) a.setAttribute('aria-current','page');
         return a;
       }));
-      window.dispatchEvent(new CustomEvent('instructmos:vendor', {detail:{vendor, href:activeChoice?.getAttribute('href'), chooser:scene === 'chooser', fromHome}}));
+      window.dispatchEvent(new CustomEvent('instructmos:vendor', {detail:{vendor, href:activeChoice?.hash, chooser:scene === 'chooser', logo}}));
     }
     const back = document.querySelector('.scene-guide-back');
     back.href = vendor ? '#vaelg-' + vendor : '#forside';
@@ -3295,7 +3381,7 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
           target.focus({preventScroll:true});
         }
         animation?.cancel();
-        if (!reduced.matches && !document.body.hasAttribute('data-ambient-paused') && !(fromHome && portalTransition)) {
+        if (!reduced.matches && !document.body.hasAttribute('data-ambient-paused') && portalTransition?.hash !== hash) {
           const view = scene === 'guide' ? tool.querySelector('.page.active') : scene === 'chooser' ? chooser : home;
           animation = view?.animate([{opacity:.45,transform:'translateY(8px)'},{opacity:1,transform:'none'}],
             {duration:260,easing:'cubic-bezier(.2,.7,.25,1)'});
@@ -3303,13 +3389,18 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
       });
     }
   }
-  home.addEventListener('click', event => {
-    const portal = event.target.closest('a.scene-portal');
+  document.addEventListener('click', event => {
+    const portal = event.target.closest('#scene-home a.scene-portal,#scene-header .scene-switch a[data-vendor],a[href="#forside"]');
     if (!portal || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey ||
         event.shiftKey || event.altKey || reduced.matches || document.body.hasAttribute('data-ambient-paused') ||
-        !document.startViewTransition || !window.CSS?.registerProperty || portal.hash === location.hash) return;
+        !document.startViewTransition || !window.CSS?.registerProperty || portal.hash === location.hash ||
+        (portal.hash === '#forside' && scene === 'home')) return;
     event.preventDefault();
-    if (portalTransition) return;
+    if (portalTransition?.hash === portal.hash) return;
+    portalTransition?.effect.skipTransition();
+    animation?.cancel();
+    const hash = portal.hash;
+    const previousHash = location.hash;
     const rect = portal.getBoundingClientRect();
     const x = event.detail ? event.clientX : rect.left + rect.width / 2;
     const y = event.detail ? event.clientY : rect.top + rect.height / 2;
@@ -3317,20 +3408,24 @@ function mountInstructionWheel(wheel, choices, initialVendor, directory) {
     root.style.setProperty('--portal-y', y + 'px');
     root.style.setProperty('--portal-reach', (Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y)) + 76) + 'px');
     root.setAttribute('data-portal-transition', '');
-    const transition = document.startViewTransition(() => new Promise(resolve => {
-      window.addEventListener('hashchange', resolve, {once:true});
-      location.hash = portal.hash;
-    }));
-    portalTransition = transition;
-    transition.ready.catch(() => {}); // A quick second navigation can skip the reveal.
-    transition.finished.finally(() => {
+    const effect = document.startViewTransition(() => {
+      if (portalTransition?.effect !== effect || location.hash !== previousHash) return;
+      return new Promise(resolve => {
+        window.addEventListener('hashchange', resolve, {once:true});
+        location.hash = hash;
+      });
+    });
+    portalTransition = {effect,hash};
+    effect.ready.catch(() => {}); // A quick second navigation can skip the reveal.
+    effect.finished.finally(() => {
+      if (portalTransition?.effect !== effect) return;
       portalTransition = null;
       root.removeAttribute('data-portal-transition');
     }).catch(() => {});
   });
   reduced.addEventListener('change', () => {
     if (reduced.matches) {
-      portalTransition?.skipTransition();
+      portalTransition?.effect.skipTransition();
       animation?.cancel();
     }
   });
@@ -5456,6 +5551,7 @@ init();
     heading.id = id+'-next-title';
     region.setAttribute('aria-labelledby',heading.id);
     const wheel = document.getElementById('imos-wheel').cloneNode(true);
+    wheel.querySelector('.imos-wheel-hub').remove();
     wheel.id = id==='chatgpt-project' ? 'project-wheel' : id+'-wheel';
     wheel.className = 'continuation-wheel';
     const help = wheel.querySelector('p');
