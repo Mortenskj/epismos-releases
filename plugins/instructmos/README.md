@@ -1,4 +1,4 @@
-# InstructMOS 1.5.2
+# InstructMOS 1.5.4
 
 Prepare instructions for ChatGPT, Claude and Gemini, check copied text against
 the intended profile and review supplied answers with Danish pattern probes.
@@ -47,3 +47,7 @@ instructions, run a probe and inspect the answer. For copy and paste setup, see
 [InstructMOS](https://instruct.epismos.com/).
 
 [MIT license](LICENSE)
+
+## Guide a task
+
+Select **instructMOS Task Guide** where your host lists skills, then give it your task. Routine gives a complete, concise answer. Verify checks evidence when the user requests it or when a decision or a completion claim needs a separate check. Both modes challenge important unsupported claims. Check the host’s own skill controls for how to select the skill.

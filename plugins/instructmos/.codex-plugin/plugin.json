@@ -1,6 +1,6 @@
 {
   "name": "instructmos",
-  "version": "1.5.2",
+  "version": "1.5.4",
   "description": "Prepare canonical instructions for ChatGPT, Claude and Gemini, check copied text, and score supplied answers with bounded pattern probes. Guidance, not enforcement; no automatic account installation.",
   "author": {
     "name": "Morten Oxholm Skjærbæk",

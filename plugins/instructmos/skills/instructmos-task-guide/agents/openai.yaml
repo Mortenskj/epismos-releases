@@ -1,0 +1,4 @@
+interface:
+  display_name: instructMOS Task Guide
+  short_description: Handle routine work. Verify consequential results.
+  default_prompt: Guide this task at the right depth and show the deciding evidence if verification is needed.
