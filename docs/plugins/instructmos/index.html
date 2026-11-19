@@ -94,7 +94,7 @@
             <li>
               <h4>Download and upload the ZIP</h4>
               <p>If InstructMOS is missing and you have upload access, choose your workspace in the Admin console, then go to <strong>Plugins → Add → Upload plugin</strong> and select the ZIP as downloaded. If the upload option is missing, ask a workspace admin to make InstructMOS available.</p>
-              <div class="install-links"><a href="https://github.com/Mortenskj/epismos-releases/releases/download/instructmos-v1.5.2/instructmos-1.5.2.zip">Download InstructMOS 1.5.2 ZIP</a><a href="https://admin.openai.com/">Open the Admin console ↗</a></div>
+              <div class="install-links"><a data-instructmos-release="zip" href="https://github.com/Mortenskj/epismos-releases/releases/download/instructmos-v1.5.2/instructmos-1.5.2.zip">Download InstructMOS 1.5.2 ZIP</a><a href="https://admin.openai.com/">Open the Admin console ↗</a></div>
             </li>
             <li id="chatgpt-use">
               <h4>Use it in Chat or Work</h4>
@@ -148,7 +148,7 @@
             <li>
               <h4>Download and extract the ZIP</h4>
               <p>Extract the ZIP to get the <code>instructmos</code> folder.</p>
-              <a href="https://github.com/Mortenskj/epismos-releases/releases/download/instructmos-v1.5.2/instructmos-1.5.2.zip">Download InstructMOS 1.5.2</a>
+              <a data-instructmos-release="zip" href="https://github.com/Mortenskj/epismos-releases/releases/download/instructmos-v1.5.2/instructmos-1.5.2.zip">Download InstructMOS 1.5.2</a>
             </li>
             <li>
               <h4>Install the extension</h4>
@@ -199,11 +199,12 @@
   </section>
 </main>
 <footer>
-  <strong class="footer-brand">InstructMOS · 1.5.2</strong>
-  <a href="https://github.com/Mortenskj/epismos-releases/releases/tag/instructmos-v1.5.2">ZIP and SHA-256</a>
-  <a href="https://github.com/Mortenskj/epismos-releases/tree/instructmos-v1.5.2/plugins/instructmos">Source and installation reference</a>
+  <strong class="footer-brand" data-instructmos-release="label">InstructMOS · 1.5.2</strong>
+  <a data-instructmos-release="release" href="https://github.com/Mortenskj/epismos-releases/releases/tag/instructmos-v1.5.2">ZIP and SHA-256</a>
+  <a data-instructmos-release="source" href="https://github.com/Mortenskj/epismos-releases/tree/instructmos-v1.5.2/plugins/instructmos">Source and installation reference</a>
   <a href="https://github.com/Mortenskj/epismos-releases/releases">Release history</a>
 </footer>
 <script src="page.js?v=chat-work" defer></script>
+<script src="release-version.js"></script>
 </body>
 </html>

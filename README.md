@@ -18,3 +18,20 @@ Kør workflowet manuelt med et eksisterende tag for at verificere en tidligere u
 
 [InstructMOS 1.5.2](plugins/instructmos/) supports Claude Code, Codex and Gemini CLI.
 [Get the install ZIP and SHA-256](https://github.com/Mortenskj/epismos-releases/releases/tag/instructmos-v1.5.2).
+
+### Udgiv en ny stabil pluginversion
+
+Opret en offentlig release med tagget `instructmos-vX.Y.Z` og de to filer
+`instructmos-X.Y.Z.zip` og `instructmos-X.Y.Z.zip.sha256`. Udgiv den som
+stabil release, når begge filer er uploadet. Tagget skal pege på kilden til pakken.
+
+Workflowet **InstructMOS plugin download pointer** vælger den højeste komplette,
+stabile pluginversion og sammenholder SHA-256-filen med GitHubs ZIP-digest.
+Derefter opdaterer det `docs/plugins/instructmos/latest.json`, som liveguiden
+læser fra GitHub. Webtags, kladder og prereleases indgår ikke. Ældre releases
+beholder deres tags og filer.
+
+Publicér med GitHub eller `gh release create` under en brugerkonto. Hvis releasen
+blev oprettet af et workflow med det indbyggede `GITHUB_TOKEN`, så kør
+**InstructMOS plugin download pointer** manuelt bagefter. Den samme manuelle
+kørsel kan bruges efter en rettelse af releasefilerne.

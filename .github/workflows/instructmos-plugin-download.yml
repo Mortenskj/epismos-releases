@@ -1,0 +1,54 @@
+name: InstructMOS plugin download pointer
+
+on:
+  release:
+    types: [published, unpublished, deleted]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: instructmos-plugin-download-pointer
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      SELECTOR: ${{ github.workflow_sha }}
+      POINTER_PATH: docs/plugins/instructmos/latest.json
+    steps:
+      - name: Validate the public release and update the pointer
+        shell: bash
+        run: |
+          set -euo pipefail
+          work=$(mktemp -d)
+          cd "$work"
+          gh api -H 'Accept: application/vnd.github.raw+json' \
+            "repos/$GH_REPO/contents/scripts/select-instructmos-plugin-release.py?ref=$SELECTOR" > select.py
+          gh api --paginate --slurp "repos/$GH_REPO/releases?per_page=100" > releases.json
+          selected=$(python3 select.py < releases.json)
+          read -r version digest <<< "$selected"
+          archive="instructmos-$version.zip"
+          gh release download "instructmos-v$version" --repo "$GH_REPO" \
+            --pattern "$archive.sha256" --output checksum
+          published_digest=$(awk 'NR==1 {print $1}' checksum)
+          [[ "$published_digest" == "$digest" ]]
+
+          route="repos/$GH_REPO/contents/$POINTER_PATH"
+          document=$(gh api "$route?ref=main")
+          old_version=$(jq -r '.content | @base64d | fromjson | .version' <<< "$document")
+          if [[ "$old_version" == "$version" ]]; then
+            echo "InstructMOS $version is already selected. ZIP digest: $digest."
+            exit 0
+          fi
+          blob=$(jq -r .sha <<< "$document")
+          content=$(printf '{"version":"%s"}\n' "$version" | base64 -w 0)
+          gh api --method PUT "$route" -f branch=main -f sha="$blob" -f content="$content" \
+            -f message="Select InstructMOS plugin $version for the web guide" --jq .commit.sha
