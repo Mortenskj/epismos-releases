@@ -83,7 +83,7 @@ function showInstallStep(focusHeading = false) {
     guide.hidden = index !== client;
     clients[index].setAttribute('aria-pressed', String(index === client));
   });
-  const steps = [...guides[client].querySelectorAll('li')];
+  const steps = [...guides[client].querySelectorAll(':scope > ol > li')];
   steps.forEach((item, index) => { item.hidden = index !== step; });
   progress.style.setProperty('--install-progress', (step + 1) / steps.length);
   progress.querySelector('.install-count').textContent = copy.stepLabel.replace('{step}', step + 1).replace('{total}', steps.length);
