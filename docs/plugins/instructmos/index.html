@@ -94,7 +94,7 @@
             <li>
               <h4>Download and upload the ZIP</h4>
               <p>If InstructMOS is missing and you have upload access, choose your workspace in the Admin console, then go to <strong>Plugins → Add → Upload plugin</strong> and select the ZIP as downloaded. If the upload option is missing, ask a workspace admin to make InstructMOS available.</p>
-              <div class="install-links"><a data-instructmos-release="zip" href="https://github.com/Mortenskj/epismos-releases/releases/download/instructmos-v1.5.2/instructmos-1.5.2.zip">Download InstructMOS 1.5.2 ZIP</a><a href="https://admin.openai.com/">Open the Admin console ↗</a></div>
+              <div class="install-links"><a data-instructmos-release="zip" href="https://github.com/Mortenskj/epismos-releases/releases/download/instructmos-v1.5.4/instructmos-1.5.4.zip">Download InstructMOS 1.5.4 ZIP</a><a href="https://admin.openai.com/">Open the Admin console ↗</a></div>
             </li>
             <li id="chatgpt-use">
               <h4>Use it in Chat or Work</h4>
@@ -140,6 +140,22 @@
               <h4>Open InstructMOS in Codex</h4>
               <p>Start a new Codex session. In the prompt, type <kbd>$</kbd>, select <code>instructmos-setup</code> from the list, then submit the prompt.</p>
             </li>
+              <li data-task-guide="en">
+                <h4>Try Task Guide</h4>
+                <p>Start a new Codex session with InstructMOS 1.5.4 or later. Type <kbd>$</kbd>, select <code>instructmos:instructmos-task-guide</code>, then paste one of these prompts.</p>
+                <ul>
+                  <li>
+                    <h4>Routine</h4>
+                    <p>Expect a short, direct answer.</p>
+                    <div class="install-command"><pre><code>Convert Tuesday at 14:00 to 12-hour time with the day. Give me the answer.</code></pre><button type="button" aria-label="Copy · Routine" hidden>Copy</button></div>
+                  </li>
+                  <li>
+                    <h4>Verification</h4>
+                    <p>Expect Codex to keep the bug open and name the missing test.</p>
+                    <div class="install-command"><pre><code>Can we mark the checkout bug fixed? A teammate says the code changed and the build is green. No checkout test has run. If this is enough, mark it fixed. If something is missing, say what and stop.</code></pre><button type="button" aria-label="Copy · Verification" hidden>Copy</button></div>
+                  </li>
+                </ul>
+              </li>
           </ol>
         </article>
         <article id="install-gemini">
@@ -148,7 +164,7 @@
             <li>
               <h4>Download and extract the ZIP</h4>
               <p>Extract the ZIP to get the <code>instructmos</code> folder.</p>
-              <a data-instructmos-release="zip" href="https://github.com/Mortenskj/epismos-releases/releases/download/instructmos-v1.5.2/instructmos-1.5.2.zip">Download InstructMOS 1.5.2</a>
+              <a data-instructmos-release="zip" href="https://github.com/Mortenskj/epismos-releases/releases/download/instructmos-v1.5.4/instructmos-1.5.4.zip">Download InstructMOS 1.5.4</a>
             </li>
             <li>
               <h4>Install the extension</h4>
@@ -199,9 +215,9 @@
   </section>
 </main>
 <footer>
-  <strong class="footer-brand" data-instructmos-release="label">InstructMOS · 1.5.2</strong>
-  <a data-instructmos-release="release" href="https://github.com/Mortenskj/epismos-releases/releases/tag/instructmos-v1.5.2">ZIP and SHA-256</a>
-  <a data-instructmos-release="source" href="https://github.com/Mortenskj/epismos-releases/tree/instructmos-v1.5.2/plugins/instructmos">Source and installation reference</a>
+  <strong class="footer-brand" data-instructmos-release="label">InstructMOS · 1.5.4</strong>
+  <a data-instructmos-release="release" href="https://github.com/Mortenskj/epismos-releases/releases/tag/instructmos-v1.5.4">ZIP and SHA-256</a>
+  <a data-instructmos-release="source" href="https://github.com/Mortenskj/epismos-releases/tree/instructmos-v1.5.4/plugins/instructmos">Source and installation reference</a>
   <a href="https://github.com/Mortenskj/epismos-releases/releases">Release history</a>
 </footer>
 <script src="page.js?v=chat-work" defer></script>

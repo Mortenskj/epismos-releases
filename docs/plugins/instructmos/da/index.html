@@ -94,7 +94,7 @@
             <li>
               <h4>Hent og upload ZIP’en</h4>
               <p>Hvis InstructMOS mangler, og du har uploadadgang, så vælg dit workspace i Admin console. Gå til <strong>Plugins → Add → Upload plugin</strong>, og vælg ZIP-filen, som du hentede den. Hvis uploadmuligheden mangler, kan en administrator hjælpe med at gøre pluginet tilgængeligt.</p>
-              <div class="install-links"><a data-instructmos-release="zip" href="https://github.com/Mortenskj/epismos-releases/releases/download/instructmos-v1.5.2/instructmos-1.5.2.zip">Hent InstructMOS 1.5.2 som ZIP</a><a href="https://admin.openai.com/">Åbn Admin console ↗</a></div>
+              <div class="install-links"><a data-instructmos-release="zip" href="https://github.com/Mortenskj/epismos-releases/releases/download/instructmos-v1.5.4/instructmos-1.5.4.zip">Hent InstructMOS 1.5.4 som ZIP</a><a href="https://admin.openai.com/">Åbn Admin console ↗</a></div>
             </li>
             <li id="chatgpt-use">
               <h4>Brug det i Chat eller Work</h4>
@@ -140,6 +140,22 @@
               <h4>Åbn InstructMOS i Codex</h4>
               <p>Start en ny Codex-session. Skriv <kbd>$</kbd> i promptfeltet, vælg <code>instructmos-setup</code> fra listen, og send prompten.</p>
             </li>
+              <li data-task-guide="da">
+                <h4>Prøv Task Guide</h4>
+                <p>Start en ny Codex-session med InstructMOS 1.5.4 eller nyere. Skriv <kbd>$</kbd>, vælg <code>instructmos:instructmos-task-guide</code>, og indsæt én af prompterne.</p>
+                <ul>
+                  <li>
+                    <h4>Rutine</h4>
+                    <p>Forvent et kort, direkte svar.</p>
+                    <div class="install-command"><pre><code>Omskriv tirsdag kl. 14.00 til 12-timersformat med ugedag. Giv mig svaret.</code></pre><button type="button" aria-label="Kopiér · Rutine" hidden>Kopiér</button></div>
+                  </li>
+                  <li>
+                    <h4>Verificering</h4>
+                    <p>Forvent, at Codex holder fejlen åben og forklarer, hvilken test der mangler.</p>
+                    <div class="install-command"><pre><code>Kan vi kalde checkout-fejlen løst? En kollega siger, at koden er ændret, og buildet er grønt. Ingen checkout-test er kørt. Hvis det er nok, så markér fejlen som løst. Hvis der mangler noget, så sig hvad og stop.</code></pre><button type="button" aria-label="Kopiér · Verificering" hidden>Kopiér</button></div>
+                  </li>
+                </ul>
+              </li>
           </ol>
         </article>
         <article id="install-gemini">
@@ -148,7 +164,7 @@
             <li>
               <h4>Hent og pak ZIP’en ud</h4>
               <p>Pak ZIP’en ud, så du får mappen <code>instructmos</code>.</p>
-              <a data-instructmos-release="zip" href="https://github.com/Mortenskj/epismos-releases/releases/download/instructmos-v1.5.2/instructmos-1.5.2.zip">Hent InstructMOS 1.5.2</a>
+              <a data-instructmos-release="zip" href="https://github.com/Mortenskj/epismos-releases/releases/download/instructmos-v1.5.4/instructmos-1.5.4.zip">Hent InstructMOS 1.5.4</a>
             </li>
             <li>
               <h4>Installér udvidelsen</h4>
@@ -199,9 +215,9 @@
   </section>
 </main>
 <footer>
-  <strong class="footer-brand" data-instructmos-release="label">InstructMOS · 1.5.2</strong>
-  <a data-instructmos-release="release" href="https://github.com/Mortenskj/epismos-releases/releases/tag/instructmos-v1.5.2">ZIP og SHA-256</a>
-  <a data-instructmos-release="source" href="https://github.com/Mortenskj/epismos-releases/tree/instructmos-v1.5.2/plugins/instructmos">Kilde og engelsk installationsvejledning</a>
+  <strong class="footer-brand" data-instructmos-release="label">InstructMOS · 1.5.4</strong>
+  <a data-instructmos-release="release" href="https://github.com/Mortenskj/epismos-releases/releases/tag/instructmos-v1.5.4">ZIP og SHA-256</a>
+  <a data-instructmos-release="source" href="https://github.com/Mortenskj/epismos-releases/tree/instructmos-v1.5.4/plugins/instructmos">Kilde og engelsk installationsvejledning</a>
   <a href="https://github.com/Mortenskj/epismos-releases/releases">Versionshistorik</a>
 </footer>
 <script src="../page.js?v=chat-work" defer></script>
