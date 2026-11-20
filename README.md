@@ -1,37 +1,37 @@
 # episMOS Releases
 
-[Åbn udgivelsessiden](https://mortenskj.github.io/epismos-releases/) · [Åbn InstructMOS](https://instruct.epismos.com/) · [Se alle versioner](https://github.com/Mortenskj/epismos-releases/releases)
+[Open the release site](https://mortenskj.github.io/epismos-releases/) · [Open InstructMOS](https://instruct.epismos.com/?lang=en) · [See all releases](https://github.com/Mortenskj/epismos-releases/releases)
 
-Arkivet starter med de offentlige InstructMOS-webudgaver. Hver udgave har en fast version, offline-HTML og SHA-256. Nyeste webudgave bruger det samme filnavn i Releases, så downloadlinket kan genbruges.
+InstructMOS helps you choose where to save working instructions in ChatGPT, Claude or Gemini and try them on a task. Each web release includes a standalone HTML file for offline use and its SHA-256 checksum.
 
-[Hent nyeste InstructMOS](https://github.com/Mortenskj/epismos-releases/releases/latest/download/instructmos.html)
+[Download the latest offline guide](https://github.com/Mortenskj/epismos-releases/releases/latest/download/instructmos.html)
 
-## Udgiv en ny webversion
+## InstructMOS plugin
 
-1. Læg den testede offline-HTML i `docs/instructmos/index.html` og push til `main`. GitHub Pages opdaterer sin kopi.
-2. Sæt næste stigende tag `instructmos-web-rN` på den aktuelle `main` og push tagget. Workflowet læser den taggede HTML og udgiver den med SHA-256.
-3. Kontrollér at GitHub Pages, det faste downloadlink og den taggede release matcher. Simply har fortsat sin egen publicering.
+The plugin supports Claude Code, Codex and Gemini CLI. See the [plugin README](plugins/instructmos/) for installation commands, or open the [installation guide and download](https://mortenskj.github.io/epismos-releases/plugins/instructmos/). The guide is also [available in Danish](https://mortenskj.github.io/epismos-releases/plugins/instructmos/da/).
 
-Kør workflowet manuelt med et eksisterende tag for at verificere en tidligere udgivelse uden at ændre den.
+## Publish a web release
 
-## Plugins
+1. Put the tested offline HTML in `docs/instructmos/index.html` and push to `main`. GitHub Pages updates its copy.
+2. Create the next `instructmos-web-rN` tag on the current `main` commit and push the tag. The workflow publishes the tagged HTML and its SHA-256 checksum.
+3. Verify that GitHub Pages, the latest download and the tagged release match. Deployment to Simply is a separate step.
 
-[InstructMOS 1.5.2](plugins/instructmos/) supports Claude Code, Codex and Gemini CLI.
-[Get the install ZIP and SHA-256](https://github.com/Mortenskj/epismos-releases/releases/tag/instructmos-v1.5.2).
+Run the workflow manually with an existing tag to verify an earlier release.
 
-### Udgiv en ny stabil pluginversion
+## Publish a stable plugin release
 
-Opret en offentlig release med tagget `instructmos-vX.Y.Z` og de to filer
-`instructmos-X.Y.Z.zip` og `instructmos-X.Y.Z.zip.sha256`. Udgiv den som
-stabil release, når begge filer er uploadet. Tagget skal pege på kilden til pakken.
+Create a public release tagged `instructmos-vX.Y.Z` with
+`instructmos-X.Y.Z.zip` and `instructmos-X.Y.Z.zip.sha256`. Set the tag to
+the commit containing the package source. Publish it as a stable release
+once both files are uploaded.
 
-Workflowet **InstructMOS plugin download pointer** vælger den højeste komplette,
-stabile pluginversion og sammenholder SHA-256-filen med GitHubs ZIP-digest.
-Derefter opdaterer det `docs/plugins/instructmos/latest.json`, som liveguiden
-læser fra GitHub. Webtags, kladder og prereleases indgår ikke. Ældre releases
-beholder deres tags og filer.
+The **InstructMOS plugin download pointer** workflow selects the highest
+complete, stable plugin release and checks its SHA-256 file against GitHub's
+ZIP digest. It then updates `docs/plugins/instructmos/latest.json`, which the
+online guide reads from GitHub. The workflow skips web tags, drafts and
+prereleases. Older releases retain their tags and assets.
 
-Publicér med GitHub eller `gh release create` under en brugerkonto. Hvis releasen
-blev oprettet af et workflow med det indbyggede `GITHUB_TOKEN`, så kør
-**InstructMOS plugin download pointer** manuelt bagefter. Den samme manuelle
-kørsel kan bruges efter en rettelse af releasefilerne.
+Publish in GitHub or with `gh release create` under a user account. If a
+workflow published the release using the built-in `GITHUB_TOKEN`, run
+**InstructMOS plugin download pointer** manually afterward. You can also
+run it after correcting release assets.
